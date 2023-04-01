@@ -30,7 +30,7 @@
 //! ```
 //! use zorder::bmi2::{index_of, coord_of};
 //!
-//! if std::arch::is_x86_feature_detected!("bmi2") {
+//! if is_x86_feature_detected!("bmi2") {
 //!     let idx = unsafe { index_of((1, 1)) };
 //!     assert_eq!(idx, 3);
 //!
@@ -38,6 +38,8 @@
 //!     assert_eq!(coord, (1, 1));
 //! }
 //! ```
+
+#![no_std]
 
 /// Returns the Z-order curve index of the given 2D coordinates.
 ///
@@ -73,6 +75,7 @@ pub fn coord_of(idx: u32) -> (u16, u16) {
     (x, y)
 }
 
+#[cfg(all(any(target_arch = "x86_64", target_arch = "x86"), feature = "bmi2"))]
 pub mod bmi2 {
     /// Returns the Z-order curve index of the given 2D coordinates.
     ///
@@ -85,7 +88,7 @@ pub mod bmi2 {
     /// supported by the CPU. This can be checked at runtime:
     ///
     /// ```
-    /// if std::is_x86_feature_detected!("bmi2") {
+    /// if is_x86_feature_detected!("bmi2") {
     ///    // ...
     /// }
     /// ```
@@ -95,14 +98,14 @@ pub mod bmi2 {
     /// ```
     /// use zorder::bmi2::index_of;
     ///
-    /// if std::is_x86_feature_detected!("bmi2") {
+    /// if is_x86_feature_detected!("bmi2") {
     ///     let idx = unsafe { index_of((1, 1)) };
     ///     assert_eq!(idx, 3);
     /// }
     /// ```
     #[inline]
     pub unsafe fn index_of((x, y): (u16, u16)) -> u32 {
-        use std::arch::x86_64::_pdep_u32;
+        use core::arch::x86_64::_pdep_u32;
 
         let x = _pdep_u32(x as u32, 0x55555555);
         let y = _pdep_u32(y as u32, 0xAAAAAAAA);
@@ -120,7 +123,7 @@ pub mod bmi2 {
     /// supported by the CPU. This can be checked at runtime:
     ///
     /// ```
-    /// if std::is_x86_feature_detected!("bmi2") {
+    /// if is_x86_feature_detected!("bmi2") {
     ///     // ...
     /// }
     /// ```
@@ -130,14 +133,14 @@ pub mod bmi2 {
     /// ```
     /// use zorder::bmi2::coord_of;
     ///
-    /// if std::is_x86_feature_detected!("bmi2") {
+    /// if is_x86_feature_detected!("bmi2") {
     ///     let coord = unsafe { coord_of(3) };
     ///     assert_eq!(coord, (1, 1));
     /// }
     /// ```
     #[inline]
     pub unsafe fn coord_of(idx: u32) -> (u16, u16) {
-        use std::arch::x86_64::_pext_u32;
+        use core::arch::x86_64::_pext_u32;
 
         let x = _pext_u32(idx, 0x55555555);
         let y = _pext_u32(idx, 0xAAAAAAAA);
