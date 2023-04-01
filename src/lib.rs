@@ -149,7 +149,6 @@ pub mod bmi2 {
 }
 
 /// Software implementation of interleaving bits.
-/// `num` must be less than 65536.
 #[inline]
 fn interleave(num: u16) -> u32 {
     // http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
@@ -162,7 +161,7 @@ fn interleave(num: u16) -> u32 {
 }
 
 /// Software implementation of deinterleaving bits.
-/// `num` has to be interleaved, otherwise returns incorrect results.
+/// `num` has to be interleaved, otherwise may return unexpected results.
 #[inline]
 fn deinterleave(num: u32) -> u16 {
     // https://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton
