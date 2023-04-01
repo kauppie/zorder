@@ -40,6 +40,15 @@
 //! ```
 
 /// Returns the Z-order curve index of the given 2D coordinates.
+///
+/// # Examples
+///
+/// ```
+/// use zorder::index_of;
+///
+/// let idx = index_of((1, 1));
+/// assert_eq!(idx, 3);
+/// ```
 #[inline]
 pub fn index_of((x, y): (u16, u16)) -> u32 {
     let x_mask = interleave(x);
@@ -48,6 +57,15 @@ pub fn index_of((x, y): (u16, u16)) -> u32 {
 }
 
 /// Returns the 2D coordinates of the given Z-order curve index.
+///
+/// # Examples
+///
+/// ```
+/// use zorder::coord_of;
+///
+/// let coord = coord_of(3);
+/// assert_eq!(coord, (1, 1));
+/// ```
 #[inline]
 pub fn coord_of(idx: u32) -> (u16, u16) {
     let x = deinterleave(idx & 0x55555555);
@@ -60,6 +78,28 @@ pub mod bmi2 {
     ///
     /// This function requires the bmi2 instruction set, but is much faster
     /// than the software implementation.
+    ///
+    /// # Safety
+    ///
+    /// This function is safe to call only if the `bmi2` x86 feature is
+    /// supported by the CPU. This can be checked at runtime:
+    ///
+    /// ```
+    /// if std::is_x86_feature_detected!("bmi2") {
+    ///    // ...
+    /// }
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use zorder::bmi2::index_of;
+    ///
+    /// if std::is_x86_feature_detected!("bmi2") {
+    ///     let idx = unsafe { index_of((1, 1)) };
+    ///     assert_eq!(idx, 3);
+    /// }
+    /// ```
     #[inline]
     pub unsafe fn index_of((x, y): (u16, u16)) -> u32 {
         use std::arch::x86_64::_pdep_u32;
@@ -73,6 +113,28 @@ pub mod bmi2 {
     ///
     /// This function requires the bmi2 instruction set, but is much faster
     /// than the software implementation.
+    ///
+    /// # Safety
+    ///
+    /// This function is safe to call only if the `bmi2` x86 feature is
+    /// supported by the CPU. This can be checked at runtime:
+    ///
+    /// ```
+    /// if std::is_x86_feature_detected!("bmi2") {
+    ///     // ...
+    /// }
+    /// ```
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use zorder::bmi2::coord_of;
+    ///
+    /// if std::is_x86_feature_detected!("bmi2") {
+    ///     let coord = unsafe { coord_of(3) };
+    ///     assert_eq!(coord, (1, 1));
+    /// }
+    /// ```
     #[inline]
     pub unsafe fn coord_of(idx: u32) -> (u16, u16) {
         use std::arch::x86_64::_pext_u32;
