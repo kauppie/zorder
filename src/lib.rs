@@ -53,9 +53,21 @@
 /// ```
 #[inline]
 pub fn index_of((x, y): (u16, u16)) -> u32 {
-    let x_mask = interleave(x);
-    let y_mask = interleave(y) << 1;
-    x_mask | y_mask
+    // Adapted originally from:
+    // http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
+    //
+    // This implementation uses u64 instead of u32 to interleave both x and y
+    // in parallel in single pass.
+    let packed = (x as u64) | ((y as u64) << 32);
+
+    let first = (packed | (packed << 8)) & 0x00FF00FF00FF00FF;
+    let second = (first | (first << 4)) & 0x0F0F0F0F0F0F0F0F;
+    let third = (second | (second << 2)) & 0x3333333333333333;
+    let fourth = (third | (third << 1)) & 0x5555555555555555;
+
+    let x = fourth;
+    let y = fourth >> 31;
+    (x | y) as u32
 }
 
 /// Returns the 2D coordinates of the given Z-order curve index.
@@ -70,8 +82,21 @@ pub fn index_of((x, y): (u16, u16)) -> u32 {
 /// ```
 #[inline]
 pub fn coord_of(idx: u32) -> (u16, u16) {
-    let x = deinterleave(idx & 0x55555555);
-    let y = deinterleave((idx & 0xAAAAAAAA) >> 1);
+    // Adapted originally from:
+    // https://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton
+    //
+    // Similar to the `index_of` function, this implementation uses u64 to
+    // deinterleave both x and y in parallel in single pass.
+    let wide_idx = idx as u64;
+    let packed = (wide_idx & 0x55555555) | ((wide_idx & 0xAAAAAAAA) << 31);
+
+    let first = (packed | (packed >> 1)) & 0x3333333333333333;
+    let second = (first | (first >> 2)) & 0x0F0F0F0F0F0F0F0F;
+    let third = (second | (second >> 4)) & 0x00FF00FF00FF00FF;
+    let fourth = third | (third >> 8);
+
+    let x = fourth as u16;
+    let y = (fourth >> 32) as u16;
     (x, y)
 }
 
@@ -146,30 +171,6 @@ pub mod bmi2 {
         let y = _pext_u32(idx, 0xAAAAAAAA);
         (x as u16, y as u16)
     }
-}
-
-/// Software implementation of interleaving bits.
-#[inline]
-fn interleave(num: u16) -> u32 {
-    // http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN
-
-    let num = num as u32;
-    let first = (num | (num << 8)) & 0x00FF00FF;
-    let second = (first | (first << 4)) & 0x0F0F0F0F;
-    let third = (second | (second << 2)) & 0x33333333;
-    (third | (third << 1)) & 0x55555555
-}
-
-/// Software implementation of deinterleaving bits.
-/// `num` has to be interleaved, otherwise may return unexpected results.
-#[inline]
-fn deinterleave(num: u32) -> u16 {
-    // https://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton
-
-    let first = (num | (num >> 1)) & 0x33333333;
-    let second = (first | (first >> 2)) & 0x0F0F0F0F;
-    let third = (second | (second >> 4)) & 0x00FF00FF;
-    (third | (third >> 8)) as u16
 }
 
 #[cfg(test)]
