@@ -8,7 +8,7 @@
 //!
 //! This crate provides two implementations of the Z-order curve, one using a software
 //! implementation supported by all platforms and one using bmi2 instructions
-//! supported by modern x86 CPUs.
+//! supported by modern x86_64 CPUs.
 //!
 //!
 //! # Examples
@@ -30,12 +30,15 @@
 //! ```
 //! use zorder::bmi2::{index_of, coord_of};
 //!
-//! if is_x86_feature_detected!("bmi2") {
-//!     let idx = unsafe { index_of((1, 1)) };
-//!     assert_eq!(idx, 3);
+//! #[cfg(target_arch = "x86_64")]
+//! {
+//!     if is_x86_feature_detected!("bmi2") {
+//!         let idx = unsafe { index_of((1, 1)) };
+//!         assert_eq!(idx, 3);
 //!
-//!     let coord = unsafe { coord_of(idx) };
-//!     assert_eq!(coord, (1, 1));
+//!         let coord = unsafe { coord_of(idx) };
+//!         assert_eq!(coord, (1, 1));
+//!     }
 //! }
 //! ```
 
@@ -100,7 +103,7 @@ pub fn coord_of(idx: u32) -> (u16, u16) {
     (x, y)
 }
 
-#[cfg(all(any(target_arch = "x86_64", target_arch = "x86"), feature = "bmi2"))]
+#[cfg(target_arch = "x86_64")]
 pub mod bmi2 {
     /// Returns the Z-order curve index of the given 2D coordinates.
     ///
@@ -109,12 +112,15 @@ pub mod bmi2 {
     ///
     /// # Safety
     ///
-    /// This function is safe to call only if the `bmi2` x86 feature is
+    /// This function is safe to call only if the `bmi2` x86_64 feature is
     /// supported by the CPU. This can be checked at runtime:
     ///
     /// ```
-    /// if is_x86_feature_detected!("bmi2") {
-    ///    // ...
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     if is_x86_feature_detected!("bmi2") {
+    ///         // ...
+    ///     }
     /// }
     /// ```
     ///
@@ -123,12 +129,16 @@ pub mod bmi2 {
     /// ```
     /// use zorder::bmi2::index_of;
     ///
-    /// if is_x86_feature_detected!("bmi2") {
-    ///     let idx = unsafe { index_of((1, 1)) };
-    ///     assert_eq!(idx, 3);
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     if is_x86_feature_detected!("bmi2") {
+    ///         let idx = unsafe { index_of((1, 1)) };
+    ///         assert_eq!(idx, 3);
+    ///     }
     /// }
     /// ```
     #[inline]
+    #[target_feature(enable = "bmi2")]
     pub unsafe fn index_of((x, y): (u16, u16)) -> u32 {
         use core::arch::x86_64::_pdep_u32;
 
@@ -144,12 +154,15 @@ pub mod bmi2 {
     ///
     /// # Safety
     ///
-    /// This function is safe to call only if the `bmi2` x86 feature is
+    /// This function is safe to call only if the `bmi2` x86_64 feature is
     /// supported by the CPU. This can be checked at runtime:
     ///
     /// ```
-    /// if is_x86_feature_detected!("bmi2") {
-    ///     // ...
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     if is_x86_feature_detected!("bmi2") {
+    ///         // ...
+    ///     }
     /// }
     /// ```
     ///
@@ -158,12 +171,16 @@ pub mod bmi2 {
     /// ```
     /// use zorder::bmi2::coord_of;
     ///
-    /// if is_x86_feature_detected!("bmi2") {
-    ///     let coord = unsafe { coord_of(3) };
-    ///     assert_eq!(coord, (1, 1));
+    /// #[cfg(target_arch = "x86_64")]
+    /// {
+    ///     if is_x86_feature_detected!("bmi2") {
+    ///         let coord = unsafe { coord_of(3) };
+    ///         assert_eq!(coord, (1, 1));
+    ///     }
     /// }
     /// ```
     #[inline]
+    #[target_feature(enable = "bmi2")]
     pub unsafe fn coord_of(idx: u32) -> (u16, u16) {
         use core::arch::x86_64::_pext_u32;
 

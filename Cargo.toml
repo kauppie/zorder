@@ -4,7 +4,3 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Elias Kauppi <elkku.kauppi@gmail.com>"]
 description = "Fast Z-order curve conversions"
-
-[features]
-default = ["bmi2"]
-bmi2 = []
