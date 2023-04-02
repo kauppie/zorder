@@ -181,7 +181,7 @@ mod tests {
     fn index_of_and_coord_of() {
         for i in 0..10_000 {
             let xy = coord_of(i);
-            assert_eq!(index_of(xy), i, "i = {}", i);
+            assert_eq!(index_of(xy), i);
         }
     }
 }
