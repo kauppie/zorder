@@ -28,10 +28,10 @@
 //! Basic usage with bmi2 implementation:
 //!
 //! ```
-//! use zorder::bmi2::{index_of, coord_of};
-//!
 //! #[cfg(target_arch = "x86_64")]
 //! {
+//!     use zorder::bmi2::{index_of, coord_of};
+//!
 //!     if is_x86_feature_detected!("bmi2") {
 //!         let idx = unsafe { index_of((1, 1)) };
 //!         assert_eq!(idx, 3);
