@@ -4,6 +4,8 @@ Crate provides functions to convert 2D coordinates to [Z-order curve](https://en
 
 ## Example
 
+Software implementation:
+
 ```rust
 use zorder::{index_of, coord_of};
 
@@ -14,7 +16,7 @@ let coord = coord_of(idx);
 assert_eq!(coord, (1, 1));
 ```
 
-bmi2 instruction set accelerated version is also available:
+In most cases faster [`bmi2`](https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set) based implementation is also available:
 
 ```rust
 #[cfg(target_arch = "x86_64")]
