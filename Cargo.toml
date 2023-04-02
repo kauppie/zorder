@@ -2,5 +2,12 @@
 name = "zorder"
 version = "0.1.0"
 edition = "2021"
-authors = ["Elias Kauppi <elkku.kauppi@gmail.com>"]
+license = "MIT OR Apache-2.0"
+authors = ["Elias Kauppi"]
 description = "Fast Z-order curve conversions"
+homepage = "https://github.com/kauppie/zorder"
+repository = "https://github.com/kauppie/zorder"
+documentation = "https://docs.rs/zorder"
+readme = "README.md"
+keywords = ["z-order", "bmi2", "morton"]
+categories = ["algorithms", "hardware-support", "no-std::no-alloc"]
