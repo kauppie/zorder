@@ -107,8 +107,8 @@ pub fn coord_of(idx: u32) -> (u16, u16) {
 pub mod bmi2 {
     /// Returns the Z-order curve index of the given 2D coordinates.
     ///
-    /// This function requires the bmi2 instruction set, but is much faster
-    /// than the software implementation.
+    /// This function requires the bmi2 instruction set, but it can be
+    /// faster than the software implementation.
     ///
     /// # Safety
     ///
@@ -149,8 +149,8 @@ pub mod bmi2 {
 
     /// Returns the 2D coordinates of the given Z-order curve index.
     ///
-    /// This function requires the bmi2 instruction set, but is much faster
-    /// than the software implementation.
+    /// This function requires the bmi2 instruction set, but it can be
+    /// faster than the software implementation.
     ///
     /// # Safety
     ///
