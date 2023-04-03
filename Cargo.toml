@@ -11,3 +11,10 @@ documentation = "https://docs.rs/zorder"
 readme = "README.md"
 keywords = ["z-order", "bmi2", "morton"]
 categories = ["algorithms", "hardware-support", "no-std::no-alloc"]
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "zorder_bench"
+harness = false
