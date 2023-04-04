@@ -18,3 +18,7 @@ criterion = { version = "0.4", features = ["html_reports"] }
 [[bench]]
 name = "zorder_bench"
 harness = false
+
+[[bench]]
+name = "indexing_comparison"
+harness = false
