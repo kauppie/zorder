@@ -35,16 +35,18 @@ In most cases faster [`bmi2`](https://en.wikipedia.org/wiki/X86_Bit_manipulation
 
 ## Benchmarks
 
-Benchmarked with [criterion](https://github.com/bheisler/criterion.rs) on AMD Ryzen 9 7950X on Fedora 37 VM. You can run the benchmarks yourself with `cargo bench`.
+Benchmarked with [criterion](https://github.com/bheisler/criterion.rs) on AMD Ryzen 9 7950X on Fedora 38 VM. You can run the benchmarks yourself with `cargo bench`.
 
-| Function         | Time    |
-| ---------------- | ------- |
-| `index_of`       | 1.58 ns |
-| `coord_of`       | 945 ps  |
-| `bmi2::index_of` | 943 ps  |
-| `bmi2::coord_of` | 1.11 ns |
-
-The `bmi2` version of `coord_of` is actually slower than the software implementation on this particular CPU. If you use both `index_of` and `coord_of` evenly, or you use `index_of` more often, then you should probably prefer the `bmi2` versions of the functions. Provided that your target architecture is `x86_64` and supports `bmi2` of course.
+| Function            | Time    |
+| ------------------- | ------- |
+| `index_of`          | 1.60 ns |
+| `coord_of`          | 950 ps  |
+| `index_of_64`       | 2.06 ns |
+| `coord_of_64`       | 1.98 ns |
+| `bmi2::index_of`    | 1.13 ns |
+| `bmi2::coord_of`    | 1.12 ns |
+| `bmi2::index_of_64` | 1.14 ns |
+| `bmi2::coord_of_64` | 1.12 ns |
 
 ## License
 
