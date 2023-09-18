@@ -1,9 +1,20 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
-use zorder::{bmi2, coord_of, coord_of_64, index_of, index_of_64};
+use zorder::{
+    array_index_of, bmi2, coord_of, coord_of_64, generic_index_of, index_of, index_of_64,
+    index_of_64_dual_pass,
+};
 
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("index_of", |b| b.iter(|| index_of(black_box((2374, 8761)))));
+
+    c.bench_function("array_index_of", |b| {
+        b.iter(|| array_index_of(black_box([2374u16, 8761u16])))
+    });
+
+    c.bench_function("generic_index_of", |b| {
+        b.iter(|| generic_index_of(black_box((2374u16, 8761u16))))
+    });
 
     c.bench_function("coord_of", |b| b.iter(|| coord_of(black_box(23748761))));
 
@@ -22,6 +33,14 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("index_of_64", |b| {
         b.iter(|| index_of_64(black_box((23744732, 87611678))))
+    });
+
+    c.bench_function("index_of_64_dual_pass", |b| {
+        b.iter(|| index_of_64_dual_pass(black_box((23744732, 87611678))))
+    });
+
+    c.bench_function("array_index_of_64", |b| {
+        b.iter(|| array_index_of(black_box([23744732u32, 87611678u32])))
     });
 
     c.bench_function("coord_of_64", |b| {

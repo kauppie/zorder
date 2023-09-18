@@ -69,6 +69,82 @@
 
 #![no_std]
 
+use core::ops::BitOr;
+
+use num_traits::{PrimInt, Zero};
+
+pub trait Interleave {
+    type Interleaved: PrimInt;
+
+    fn interleave(self) -> Self::Interleaved;
+}
+
+impl Interleave for u8 {
+    type Interleaved = u16;
+
+    #[inline]
+    fn interleave(self) -> u16 {
+        let mut x = self as u16;
+
+        x = (x | (x << 4)) & 0x0F0F;
+        x = (x | (x << 2)) & 0x3333;
+        x = (x | (x << 1)) & 0x5555;
+
+        x
+    }
+}
+
+impl Interleave for u16 {
+    type Interleaved = u32;
+
+    #[inline]
+    fn interleave(self) -> u32 {
+        let mut x = self as u32;
+
+        x = (x | (x << 8)) & 0x00FF00FF;
+        x = (x | (x << 4)) & 0x0F0F0F0F;
+        x = (x | (x << 2)) & 0x33333333;
+        x = (x | (x << 1)) & 0x55555555;
+
+        x
+    }
+}
+
+impl Interleave for u32 {
+    type Interleaved = u64;
+
+    #[inline]
+    fn interleave(self) -> u64 {
+        let mut x = self as u64;
+
+        x = (x | (x << 16)) & 0x0000FFFF0000FFFF;
+        x = (x | (x << 8)) & 0x00FF00FF00FF00FF;
+        x = (x | (x << 4)) & 0x0F0F0F0F0F0F0F0F;
+        x = (x | (x << 2)) & 0x3333333333333333;
+        x = (x | (x << 1)) & 0x5555555555555555;
+
+        x
+    }
+}
+
+impl Interleave for u64 {
+    type Interleaved = u128;
+
+    #[inline]
+    fn interleave(self) -> u128 {
+        let mut x = self as u128;
+
+        x = (x | (x << 32)) & 0x00000000FFFFFFFF00000000FFFFFFFF;
+        x = (x | (x << 16)) & 0x0000FFFF0000FFFF0000FFFF0000FFFF;
+        x = (x | (x << 8)) & 0x00FF00FF00FF00FF00FF00FF00FF00FF;
+        x = (x | (x << 4)) & 0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F;
+        x = (x | (x << 2)) & 0x33333333333333333333333333333333;
+        x = (x | (x << 1)) & 0x55555555555555555555555555555555;
+
+        x
+    }
+}
+
 /// Returns the Z-order curve index of the given 16-bit 2D coordinates.
 ///
 /// # Examples
@@ -98,6 +174,22 @@ pub fn index_of((x, y): (u16, u16)) -> u32 {
     (x | y) as u32
 }
 
+#[inline]
+pub fn generic_index_of<I: Interleave>((x, y): (I, I)) -> I::Interleaved {
+    x.interleave() | (y.interleave().unsigned_shl(1))
+}
+
+// NOTE: Only works correctly for 2-element arrays.
+#[inline]
+pub fn array_index_of<I: Interleave, const N: usize>(arr: [I; N]) -> I::Interleaved {
+    arr.map(Interleave::interleave)
+        .into_iter()
+        .enumerate()
+        .fold(<I as Interleave>::Interleaved::zero(), |acc, (i, x)| {
+            acc.bitor(x.unsigned_shl(i as u32))
+        })
+}
+
 /// Returns the Z-order curve index of the given 32-bit 2D coordinates.
 ///
 /// This function operates on wider indices than [`index_of`].
@@ -123,6 +215,24 @@ pub fn index_of_64((x, y): (u32, u32)) -> u64 {
     let x = fifth;
     let y = fifth >> 63;
     (x | y) as u64
+}
+
+#[inline]
+pub fn index_of_64_dual_pass((x, y): (u32, u32)) -> u64 {
+    #[inline(always)]
+    fn single_pass(mut val: u64) -> u64 {
+        val = (val | (val << 8)) & 0x00FF00FF00FF00FF;
+        val = (val | (val << 4)) & 0x0F0F0F0F0F0F0F0F;
+        val = (val | (val << 2)) & 0x3333333333333333;
+        val = (val | (val << 1)) & 0x5555555555555555;
+
+        val
+    }
+
+    let x = single_pass(x as u64);
+    let y = single_pass(y as u64);
+
+    x | (y << 1)
 }
 
 /// Returns the 2D coordinates of the given 32-bit Z-order curve index.
@@ -371,6 +481,30 @@ mod tests {
     }
 
     #[test]
+    fn dual_pass() {
+        for x in 0..100 {
+            for y in 0..100 {
+                let idx = index_of((x, y));
+                let idx2 = array_index_of([x, y]);
+
+                assert_eq!(idx, idx2);
+            }
+        }
+    }
+
+    #[test]
+    fn dual_pass_64() {
+        for x in 0..100 {
+            for y in 0..100 {
+                let idx = index_of_64((x, y));
+                let idx2 = index_of_64_dual_pass((x, y));
+
+                assert_eq!(idx, idx2);
+            }
+        }
+    }
+
+    #[test]
     fn index_of_and_coord_of_64() {
         for i in 0..10_000 {
             let xy = coord_of_64(i);
@@ -381,5 +515,10 @@ mod tests {
             let xy = coord_of_64(i);
             assert_eq!(index_of_64(xy), i);
         }
+    }
+
+    #[test]
+    fn foobar() {
+        assert_eq!(0xffu8.interleave(), 0b0101010101010101);
     }
 }
