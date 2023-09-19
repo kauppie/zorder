@@ -71,10 +71,9 @@
 
 mod mask;
 
-use core::ops::BitOr;
+use num_traits::Zero;
 
-use mask::Interleave;
-use num_traits::{PrimInt, Zero};
+pub use mask::Interleave;
 
 #[inline]
 pub fn array_index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
@@ -86,7 +85,7 @@ where
         .map(Interleave::<N>::interleave)
         .enumerate()
         .fold(<I as Interleave<N>>::Output::zero(), |acc, (i, n)| {
-            acc.bitor(n.unsigned_shl(i as u32))
+            acc | (n << i)
         })
 }
 
