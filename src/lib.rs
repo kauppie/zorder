@@ -196,6 +196,342 @@ impl ArrayInterleave<u8, 4> for [u8; 4] {
     }
 }
 
+const fn shift<const I: usize, const N: usize>() -> usize {
+    (N - 1) * (1 << I)
+}
+
+const MASK_5_DIM_2: u128 = 0x00000000FFFFFFFF00000000FFFFFFFF;
+const MASK_4_DIM_2: u128 = 0x0000FFFF0000FFFF0000FFFF0000FFFF;
+const MASK_3_DIM_2: u128 = 0x00FF00FF00FF00FF00FF00FF00FF00FF;
+const MASK_2_DIM_2: u128 = 0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F;
+const MASK_1_DIM_2: u128 = 0x33333333333333333333333333333333;
+const MASK_0_DIM_2: u128 = 0x55555555555555555555555555555555;
+
+const MASK_4_DIM_3: u128 = 0x0000FFFF00000000FFFF00000000FFFF;
+const MASK_3_DIM_3: u128 = 0xFF0000FF0000FF0000FF0000FF0000FF;
+const MASK_2_DIM_3: u128 = 0x0F00F00F00F00F00F00F00F00F00F00F;
+const MASK_1_DIM_3: u128 = 0xC30C30C30C30C30C30C30C30C30C30C3;
+const MASK_0_DIM_3: u128 = 0x49249249249249249249249249249249;
+
+const MASK_4_DIM_4: u128 = 0x000000000000FFFF000000000000FFFF;
+const MASK_3_DIM_4: u128 = 0x000000FF000000FF000000FF000000FF;
+const MASK_2_DIM_4: u128 = 0x000F000F000F000F000F000F000F000F;
+const MASK_1_DIM_4: u128 = 0x03030303030303030303030303030303;
+const MASK_0_DIM_4: u128 = 0x11111111111111111111111111111111;
+
+pub trait DimMaskU16<const N: usize> {
+    type Output: PrimInt;
+
+    const MASK_3: Self::Output;
+    const MASK_2: Self::Output;
+    const MASK_1: Self::Output;
+    const MASK_0: Self::Output;
+}
+
+impl DimMaskU16<2> for u16 {
+    type Output = u32;
+
+    const MASK_3: Self::Output = MASK_3_DIM_2 as u32;
+    const MASK_2: Self::Output = MASK_2_DIM_2 as u32;
+    const MASK_1: Self::Output = MASK_1_DIM_2 as u32;
+    const MASK_0: Self::Output = MASK_0_DIM_2 as u32;
+}
+
+impl DimMaskU16<3> for u16 {
+    type Output = u64;
+
+    const MASK_3: Self::Output = MASK_3_DIM_3 as u64;
+    const MASK_2: Self::Output = MASK_2_DIM_3 as u64;
+    const MASK_1: Self::Output = MASK_1_DIM_3 as u64;
+    const MASK_0: Self::Output = MASK_0_DIM_3 as u64;
+}
+
+impl DimMaskU16<4> for u16 {
+    type Output = u64;
+
+    const MASK_3: Self::Output = MASK_3_DIM_4 as u64;
+    const MASK_2: Self::Output = MASK_2_DIM_4 as u64;
+    const MASK_1: Self::Output = MASK_1_DIM_4 as u64;
+    const MASK_0: Self::Output = MASK_0_DIM_4 as u64;
+}
+
+pub trait DimMaskU8<const N: usize> {
+    type Output: PrimInt;
+
+    const MASK_2: Self::Output;
+    const MASK_1: Self::Output;
+    const MASK_0: Self::Output;
+}
+
+impl DimMaskU8<2> for u8 {
+    type Output = u16;
+
+    const MASK_2: Self::Output = MASK_2_DIM_2 as u16;
+    const MASK_1: Self::Output = MASK_1_DIM_2 as u16;
+    const MASK_0: Self::Output = MASK_0_DIM_2 as u16;
+}
+
+impl DimMaskU8<3> for u8 {
+    type Output = u32;
+
+    const MASK_2: Self::Output = MASK_2_DIM_3 as u32;
+    const MASK_1: Self::Output = MASK_1_DIM_3 as u32;
+    const MASK_0: Self::Output = MASK_0_DIM_3 as u32;
+}
+
+impl DimMaskU8<4> for u8 {
+    type Output = u32;
+
+    const MASK_2: Self::Output = MASK_2_DIM_4 as u32;
+    const MASK_1: Self::Output = MASK_1_DIM_4 as u32;
+    const MASK_0: Self::Output = MASK_0_DIM_4 as u32;
+}
+
+pub trait DimMask<const N: usize> {
+    type Output: PrimInt;
+
+    fn interleave(self) -> Self::Output;
+}
+
+impl DimMask<2> for u8 {
+    type Output = u16;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
+        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
+        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<3> for u8 {
+    type Output = u32;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<2, 3>())) & MASK_2_DIM_3 as Self::Output;
+        x = (x | (x << shift::<1, 3>())) & MASK_1_DIM_3 as Self::Output;
+        x = (x | (x << shift::<0, 3>())) & MASK_0_DIM_3 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<4> for u8 {
+    type Output = u32;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<2, 4>())) & MASK_2_DIM_4 as Self::Output;
+        x = (x | (x << shift::<1, 4>())) & MASK_1_DIM_4 as Self::Output;
+        x = (x | (x << shift::<0, 4>())) & MASK_0_DIM_4 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<2> for u16 {
+    type Output = u32;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<3, 2>())) & MASK_3_DIM_2 as Self::Output;
+        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
+        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
+        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<3> for u16 {
+    type Output = u64;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<3, 3>())) & MASK_3_DIM_3 as Self::Output;
+        x = (x | (x << shift::<2, 3>())) & MASK_2_DIM_3 as Self::Output;
+        x = (x | (x << shift::<1, 3>())) & MASK_1_DIM_3 as Self::Output;
+        x = (x | (x << shift::<0, 3>())) & MASK_0_DIM_3 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<4> for u16 {
+    type Output = u64;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<3, 4>())) & MASK_3_DIM_4 as Self::Output;
+        x = (x | (x << shift::<2, 4>())) & MASK_2_DIM_4 as Self::Output;
+        x = (x | (x << shift::<1, 4>())) & MASK_1_DIM_4 as Self::Output;
+        x = (x | (x << shift::<0, 4>())) & MASK_0_DIM_4 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<2> for u32 {
+    type Output = u64;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<4, 2>())) & MASK_4_DIM_2 as Self::Output;
+        x = (x | (x << shift::<3, 2>())) & MASK_3_DIM_2 as Self::Output;
+        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
+        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
+        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<3> for u32 {
+    type Output = u128;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<4, 3>())) & MASK_4_DIM_3 as Self::Output;
+        x = (x | (x << shift::<3, 3>())) & MASK_3_DIM_3 as Self::Output;
+        x = (x | (x << shift::<2, 3>())) & MASK_2_DIM_3 as Self::Output;
+        x = (x | (x << shift::<1, 3>())) & MASK_1_DIM_3 as Self::Output;
+        x = (x | (x << shift::<0, 3>())) & MASK_0_DIM_3 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<4> for u32 {
+    type Output = u128;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<4, 4>())) & MASK_4_DIM_4 as Self::Output;
+        x = (x | (x << shift::<3, 4>())) & MASK_3_DIM_4 as Self::Output;
+        x = (x | (x << shift::<2, 4>())) & MASK_2_DIM_4 as Self::Output;
+        x = (x | (x << shift::<1, 4>())) & MASK_1_DIM_4 as Self::Output;
+        x = (x | (x << shift::<0, 4>())) & MASK_0_DIM_4 as Self::Output;
+
+        x
+    }
+}
+
+impl DimMask<2> for u64 {
+    type Output = u128;
+
+    #[inline(always)]
+    fn interleave(self) -> Self::Output {
+        let mut x = self as Self::Output;
+
+        x = (x | (x << shift::<5, 2>())) & MASK_5_DIM_2 as Self::Output;
+        x = (x | (x << shift::<4, 2>())) & MASK_4_DIM_2 as Self::Output;
+        x = (x | (x << shift::<3, 2>())) & MASK_3_DIM_2 as Self::Output;
+        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
+        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
+        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
+
+        x
+    }
+}
+
+#[inline]
+pub fn generic_array_index_of<I, const N: usize>(array: [I; N]) -> <I as DimMask<N>>::Output
+where
+    I: DimMask<N>,
+{
+    array
+        .map(DimMask::<N>::interleave)
+        .into_iter()
+        .enumerate()
+        .fold(<I as DimMask<N>>::Output::zero(), |acc, (i, n)| {
+            acc.bitor(n.unsigned_shl(i as u32))
+        })
+}
+
+#[inline(always)]
+fn inter_u8<const N: usize>(mut x: <u8 as DimMaskU8<N>>::Output) -> <u8 as DimMaskU8<N>>::Output
+where
+    u8: DimMaskU8<N>,
+{
+    x = (x | (x << shift::<2, N>())) & <u8 as DimMaskU8<N>>::MASK_2;
+    x = (x | (x << shift::<1, N>())) & <u8 as DimMaskU8<N>>::MASK_1;
+    x = (x | (x << shift::<0, N>())) & <u8 as DimMaskU8<N>>::MASK_0;
+
+    x
+}
+
+#[inline(always)]
+fn inter_u16<const N: usize>(
+    mut x: <u16 as DimMaskU16<N>>::Output,
+) -> <u16 as DimMaskU16<N>>::Output
+where
+    u16: DimMaskU16<N>,
+{
+    x = (x | (x << shift::<3, N>())) & <u16 as DimMaskU16<N>>::MASK_3;
+    x = (x | (x << shift::<2, N>())) & <u16 as DimMaskU16<N>>::MASK_2;
+    x = (x | (x << shift::<1, N>())) & <u16 as DimMaskU16<N>>::MASK_1;
+    x = (x | (x << shift::<0, N>())) & <u16 as DimMaskU16<N>>::MASK_0;
+
+    x
+}
+
+#[inline]
+pub fn array_u8_index_of<const N: usize>(array: [u8; N]) -> <u8 as DimMaskU8<N>>::Output
+where
+    u8: DimMaskU8<N>,
+{
+    array
+        .map(|x| {
+            inter_u8::<N>(unsafe {
+                <<u8 as DimMaskU8<N>>::Output as NumCast>::from::<u8>(x).unwrap_unchecked()
+            })
+        })
+        .into_iter()
+        .enumerate()
+        .fold(<u8 as DimMaskU8<N>>::Output::zero(), |acc, (i, n)| {
+            acc.bitor(n.unsigned_shl(i as u32))
+        })
+}
+
+#[inline]
+pub fn array_u16_index_of<const N: usize>(array: [u16; N]) -> <u16 as DimMaskU16<N>>::Output
+where
+    u16: DimMaskU16<N>,
+{
+    array
+        .map(|x| {
+            inter_u16::<N>(unsafe {
+                <<u16 as DimMaskU16<N>>::Output as NumCast>::from::<u16>(x).unwrap_unchecked()
+            })
+        })
+        .into_iter()
+        .enumerate()
+        .fold(<u16 as DimMaskU16<N>>::Output::zero(), |acc, (i, n)| {
+            acc.bitor(n.unsigned_shl(i as u32))
+        })
+}
+
 /// Returns the Z-order curve index of the given 16-bit 2D coordinates.
 ///
 /// # Examples
@@ -223,31 +559,6 @@ pub fn index_of((x, y): (u16, u16)) -> u32 {
     let x = fourth;
     let y = fourth >> 31;
     (x | y) as u32
-}
-
-#[inline]
-pub fn generic_index_of<I: Interleave>((x, y): (I, I)) -> I::Interleaved {
-    x.interleave() | (y.interleave().unsigned_shl(1))
-}
-
-type ArrayInterleaved<I, const N: usize> = <[I; N] as ArrayInterleave<I, N>>::Interleaved;
-
-// NOTE: Only works correctly for 2-element arrays.
-#[inline]
-pub fn array_index_of<I, const N: usize>(array: [I; N]) -> ArrayInterleaved<I, N>
-where
-    I: Interleave,
-    [I; N]: ArrayInterleave<I, N>,
-{
-    array
-        .map(|x| unsafe {
-            <ArrayInterleaved<I, N> as NumCast>::from(x.interleave()).unwrap_unchecked()
-        })
-        .into_iter()
-        .enumerate()
-        .fold(ArrayInterleaved::<I, N>::zero(), |acc, (i, x)| {
-            acc.bitor(x.unsigned_shl(i as u32))
-        })
 }
 
 /// Returns the Z-order curve index of the given 32-bit 2D coordinates.
@@ -541,18 +852,6 @@ mod tests {
     }
 
     #[test]
-    fn dual_pass() {
-        for x in 0..100 {
-            for y in 0..100 {
-                let idx = index_of((x, y));
-                let idx2 = array_index_of([x, y]);
-
-                assert_eq!(idx, idx2);
-            }
-        }
-    }
-
-    #[test]
     fn dual_pass_64() {
         for x in 0..100 {
             for y in 0..100 {
@@ -577,78 +876,23 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn dim3() {
-    //     let x = array_index_of([3u8, 3u8, 3u8]);
-
-    //     assert_eq!(x, 0b111111);
-    // }
-
-    const MASK_1_DIM_2: u64 = 0x0F0F0F0F0F0F0F0F;
-    const MASK_2_DIM_2: u64 = 0x3333333333333333;
-    const MASK_3_DIM_2: u64 = 0x5555555555555555;
-
-    const MASK_1_DIM_3: u64 = 0xF00F00F00F00F00F;
-    const MASK_2_DIM_3: u64 = 0x30C30C30C30C30C3;
-    const MASK_3_DIM_3: u64 = 0x4924924949249249;
-
-    const MASK_1_DIM_4: u64 = 0x000F000F000F000F;
-    const MASK_2_DIM_4: u64 = 0x0303030303030303;
-    const MASK_3_DIM_4: u64 = 0x1111111111111111;
-
-    trait DIM_MASK_u8<const N: usize> {
-        type Output: num_traits::PrimInt;
-
-        const MASK_1: Self::Output;
-        const MASK_2: Self::Output;
-        const MASK_3: Self::Output;
-
-        const SHIFT_1: usize = (N - 1) * 4;
-        const SHIFT_2: usize = (N - 1) * 2;
-        const SHIFT_3: usize = N - 1;
-    }
-
-    fn inter<DM: DIM_MASK_u8<N>, const N: usize>(mut x: DM::Output) -> DM::Output {
-        x = (x | (x << DM::SHIFT_1)) & DM::MASK_1;
-        x = (x | (x << DM::SHIFT_2)) & DM::MASK_2;
-        x = (x | (x << DM::SHIFT_3)) & DM::MASK_3;
-
-        x
-    }
-
-    // (n - 1) * 4
-    // (n - 1) * 2
-    // n - 1
     #[test]
-    fn interleave() {
-        let mut x = 7u8 as u16;
+    fn generic() {
+        let index = array_u16_index_of([0xFFFF, 0xFFFF]);
+        let index2 = generic_array_index_of([0xFFFFu16, 0xFFFFu16]);
 
-        x = (x | (x << 4)) & 0x0F0F;
-        x = (x | (x << 2)) & 0x3333;
-        x = (x | (x << 1)) & 0x5555;
-
-        assert_eq!(x, 0b10101);
+        assert_eq!(index, index2);
     }
 
     #[test]
-    fn interleave3() {
-        let mut x = 7u8 as u32;
+    fn interleave() {
+        let x = array_u8_index_of([7u8, 7u8, 7u8]);
+        assert_eq!(x, 0b111111111);
 
-        x = (x | (x << 8)) & 0x0F00F00F;
-        x = (x | (x << 4)) & 0xC30C30C3;
-        x = (x | (x << 2)) & 0x49249249;
+        let x = array_u8_index_of([7u8, 7u8]);
+        assert_eq!(x, 0b111111);
 
-        assert_eq!(x, 0b001001001);
-    }
-
-    #[test]
-    fn interleave4() {
-        let mut x = 7u8 as u32;
-
-        x = (x | (x << 12)) & 0x000F000F;
-        x = (x | (x << 6)) & 0x03030303;
-        x = (x | (x << 3)) & 0x11111111;
-
-        assert_eq!(x, 0b000100010001);
+        let x = array_u16_index_of([7u16, 7u16, 7u16]);
+        assert_eq!(x, 0b111111111);
     }
 }
