@@ -156,13 +156,13 @@ impl Mask<2> for u64 {
     const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
 }
 
-pub trait DimMask<const N: usize> {
+pub trait Interleave<const N: usize> {
     type Output: num_traits::PrimInt;
 
     fn interleave(self) -> Self::Output;
 }
 
-impl<const N: usize> DimMask<N> for u8
+impl<const N: usize> Interleave<N> for u8
 where
     u8: Mask<N>,
 {
@@ -181,7 +181,7 @@ where
     }
 }
 
-impl<const N: usize> DimMask<N> for u16
+impl<const N: usize> Interleave<N> for u16
 where
     u16: Mask<N>,
 {
@@ -201,7 +201,7 @@ where
     }
 }
 
-impl<const N: usize> DimMask<N> for u32
+impl<const N: usize> Interleave<N> for u32
 where
     u32: Mask<N>,
 {
@@ -222,7 +222,7 @@ where
     }
 }
 
-impl<const N: usize> DimMask<N> for u64
+impl<const N: usize> Interleave<N> for u64
 where
     u64: Mask<N>,
 {
