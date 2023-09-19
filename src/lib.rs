@@ -71,7 +71,7 @@
 
 use core::ops::BitOr;
 
-use num_traits::{PrimInt, Zero};
+use num_traits::{NumCast, PrimInt, Zero};
 
 pub trait Interleave {
     type Interleaved: PrimInt;
@@ -149,7 +149,6 @@ pub trait ArrayInterleave<I: Interleave, const N: usize> {
     type Interleaved: PrimInt;
 
     fn map(self, f: impl FnMut(I) -> Self::Interleaved) -> [Self::Interleaved; N];
-    fn widen(inter: <I as Interleave>::Interleaved) -> Self::Interleaved;
 }
 
 impl ArrayInterleave<u8, 2> for [u8; 2] {
@@ -158,11 +157,6 @@ impl ArrayInterleave<u8, 2> for [u8; 2] {
     #[inline(always)]
     fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 2] {
         self.map(f)
-    }
-
-    #[inline(always)]
-    fn widen(inter: <u8 as Interleave>::Interleaved) -> Self::Interleaved {
-        inter as Self::Interleaved
     }
 }
 
@@ -173,11 +167,6 @@ impl ArrayInterleave<u16, 2> for [u16; 2] {
     fn map(self, f: impl FnMut(u16) -> Self::Interleaved) -> [Self::Interleaved; 2] {
         self.map(f)
     }
-
-    #[inline(always)]
-    fn widen(inter: <u16 as Interleave>::Interleaved) -> Self::Interleaved {
-        inter as Self::Interleaved
-    }
 }
 
 impl ArrayInterleave<u32, 2> for [u32; 2] {
@@ -186,11 +175,6 @@ impl ArrayInterleave<u32, 2> for [u32; 2] {
     #[inline(always)]
     fn map(self, f: impl FnMut(u32) -> Self::Interleaved) -> [Self::Interleaved; 2] {
         self.map(f)
-    }
-
-    #[inline(always)]
-    fn widen(inter: <u32 as Interleave>::Interleaved) -> Self::Interleaved {
-        inter as Self::Interleaved
     }
 }
 
@@ -201,11 +185,6 @@ impl ArrayInterleave<u8, 3> for [u8; 3] {
     fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 3] {
         self.map(f)
     }
-
-    #[inline(always)]
-    fn widen(inter: <u8 as Interleave>::Interleaved) -> Self::Interleaved {
-        inter as Self::Interleaved
-    }
 }
 
 impl ArrayInterleave<u8, 4> for [u8; 4] {
@@ -214,11 +193,6 @@ impl ArrayInterleave<u8, 4> for [u8; 4] {
     #[inline(always)]
     fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 4] {
         self.map(f)
-    }
-
-    #[inline(always)]
-    fn widen(inter: <u8 as Interleave>::Interleaved) -> Self::Interleaved {
-        inter as Self::Interleaved
     }
 }
 
@@ -256,23 +230,24 @@ pub fn generic_index_of<I: Interleave>((x, y): (I, I)) -> I::Interleaved {
     x.interleave() | (y.interleave().unsigned_shl(1))
 }
 
+type ArrayInterleaved<I, const N: usize> = <[I; N] as ArrayInterleave<I, N>>::Interleaved;
+
 // NOTE: Only works correctly for 2-element arrays.
 #[inline]
-pub fn array_index_of<I, const N: usize>(
-    array: [I; N],
-) -> <[I; N] as ArrayInterleave<I, N>>::Interleaved
+pub fn array_index_of<I, const N: usize>(array: [I; N]) -> ArrayInterleaved<I, N>
 where
     I: Interleave,
     [I; N]: ArrayInterleave<I, N>,
 {
     array
-        .map(|x| <[I; N] as ArrayInterleave<I, N>>::widen(x.interleave()))
+        .map(|x| unsafe {
+            <ArrayInterleaved<I, N> as NumCast>::from(x.interleave()).unwrap_unchecked()
+        })
         .into_iter()
         .enumerate()
-        .fold(
-            <[I; N] as ArrayInterleave<I, N>>::Interleaved::zero(),
-            |acc, (i, x)| acc.bitor(x.unsigned_shl(i as u32)),
-        )
+        .fold(ArrayInterleaved::<I, N>::zero(), |acc, (i, x)| {
+            acc.bitor(x.unsigned_shl(i as u32))
+        })
 }
 
 /// Returns the Z-order curve index of the given 32-bit 2D coordinates.
@@ -602,8 +577,78 @@ mod tests {
         }
     }
 
+    // #[test]
+    // fn dim3() {
+    //     let x = array_index_of([3u8, 3u8, 3u8]);
+
+    //     assert_eq!(x, 0b111111);
+    // }
+
+    const MASK_1_DIM_2: u64 = 0x0F0F0F0F0F0F0F0F;
+    const MASK_2_DIM_2: u64 = 0x3333333333333333;
+    const MASK_3_DIM_2: u64 = 0x5555555555555555;
+
+    const MASK_1_DIM_3: u64 = 0xF00F00F00F00F00F;
+    const MASK_2_DIM_3: u64 = 0x30C30C30C30C30C3;
+    const MASK_3_DIM_3: u64 = 0x4924924949249249;
+
+    const MASK_1_DIM_4: u64 = 0x000F000F000F000F;
+    const MASK_2_DIM_4: u64 = 0x0303030303030303;
+    const MASK_3_DIM_4: u64 = 0x1111111111111111;
+
+    trait DIM_MASK_u8<const N: usize> {
+        type Output: num_traits::PrimInt;
+
+        const MASK_1: Self::Output;
+        const MASK_2: Self::Output;
+        const MASK_3: Self::Output;
+
+        const SHIFT_1: usize = (N - 1) * 4;
+        const SHIFT_2: usize = (N - 1) * 2;
+        const SHIFT_3: usize = N - 1;
+    }
+
+    fn inter<DM: DIM_MASK_u8<N>, const N: usize>(mut x: DM::Output) -> DM::Output {
+        x = (x | (x << DM::SHIFT_1)) & DM::MASK_1;
+        x = (x | (x << DM::SHIFT_2)) & DM::MASK_2;
+        x = (x | (x << DM::SHIFT_3)) & DM::MASK_3;
+
+        x
+    }
+
+    // (n - 1) * 4
+    // (n - 1) * 2
+    // n - 1
     #[test]
-    fn foobar() {
-        assert_eq!(0xffu8.interleave(), 0b0101010101010101);
+    fn interleave() {
+        let mut x = 7u8 as u16;
+
+        x = (x | (x << 4)) & 0x0F0F;
+        x = (x | (x << 2)) & 0x3333;
+        x = (x | (x << 1)) & 0x5555;
+
+        assert_eq!(x, 0b10101);
+    }
+
+    #[test]
+    fn interleave3() {
+        let mut x = 7u8 as u32;
+
+        x = (x | (x << 8)) & 0x0F00F00F;
+        x = (x | (x << 4)) & 0xC30C30C3;
+        x = (x | (x << 2)) & 0x49249249;
+
+        assert_eq!(x, 0b001001001);
+    }
+
+    #[test]
+    fn interleave4() {
+        let mut x = 7u8 as u32;
+
+        x = (x | (x << 12)) & 0x000F000F;
+        x = (x | (x << 6)) & 0x03030303;
+        x = (x | (x << 3)) & 0x11111111;
+
+        assert_eq!(x, 0b000100010001);
     }
 }
