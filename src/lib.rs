@@ -219,74 +219,6 @@ const MASK_2_DIM_4: u128 = 0x000F000F000F000F000F000F000F000F;
 const MASK_1_DIM_4: u128 = 0x03030303030303030303030303030303;
 const MASK_0_DIM_4: u128 = 0x11111111111111111111111111111111;
 
-pub trait DimMaskU16<const N: usize> {
-    type Output: PrimInt;
-
-    const MASK_3: Self::Output;
-    const MASK_2: Self::Output;
-    const MASK_1: Self::Output;
-    const MASK_0: Self::Output;
-}
-
-impl DimMaskU16<2> for u16 {
-    type Output = u32;
-
-    const MASK_3: Self::Output = MASK_3_DIM_2 as u32;
-    const MASK_2: Self::Output = MASK_2_DIM_2 as u32;
-    const MASK_1: Self::Output = MASK_1_DIM_2 as u32;
-    const MASK_0: Self::Output = MASK_0_DIM_2 as u32;
-}
-
-impl DimMaskU16<3> for u16 {
-    type Output = u64;
-
-    const MASK_3: Self::Output = MASK_3_DIM_3 as u64;
-    const MASK_2: Self::Output = MASK_2_DIM_3 as u64;
-    const MASK_1: Self::Output = MASK_1_DIM_3 as u64;
-    const MASK_0: Self::Output = MASK_0_DIM_3 as u64;
-}
-
-impl DimMaskU16<4> for u16 {
-    type Output = u64;
-
-    const MASK_3: Self::Output = MASK_3_DIM_4 as u64;
-    const MASK_2: Self::Output = MASK_2_DIM_4 as u64;
-    const MASK_1: Self::Output = MASK_1_DIM_4 as u64;
-    const MASK_0: Self::Output = MASK_0_DIM_4 as u64;
-}
-
-pub trait DimMaskU8<const N: usize> {
-    type Output: PrimInt;
-
-    const MASK_2: Self::Output;
-    const MASK_1: Self::Output;
-    const MASK_0: Self::Output;
-}
-
-impl DimMaskU8<2> for u8 {
-    type Output = u16;
-
-    const MASK_2: Self::Output = MASK_2_DIM_2 as u16;
-    const MASK_1: Self::Output = MASK_1_DIM_2 as u16;
-    const MASK_0: Self::Output = MASK_0_DIM_2 as u16;
-}
-
-impl DimMaskU8<3> for u8 {
-    type Output = u32;
-
-    const MASK_2: Self::Output = MASK_2_DIM_3 as u32;
-    const MASK_1: Self::Output = MASK_1_DIM_3 as u32;
-    const MASK_0: Self::Output = MASK_0_DIM_3 as u32;
-}
-
-impl DimMaskU8<4> for u8 {
-    type Output = u32;
-
-    const MASK_2: Self::Output = MASK_2_DIM_4 as u32;
-    const MASK_1: Self::Output = MASK_1_DIM_4 as u32;
-    const MASK_0: Self::Output = MASK_0_DIM_4 as u32;
-}
-
 pub trait DimMask<const N: usize> {
     type Output: PrimInt;
 
@@ -456,7 +388,7 @@ impl DimMask<2> for u64 {
 }
 
 #[inline]
-pub fn generic_array_index_of<I, const N: usize>(array: [I; N]) -> <I as DimMask<N>>::Output
+pub fn array_index_of<I, const N: usize>(array: [I; N]) -> <I as DimMask<N>>::Output
 where
     I: DimMask<N>,
 {
@@ -465,69 +397,6 @@ where
         .into_iter()
         .enumerate()
         .fold(<I as DimMask<N>>::Output::zero(), |acc, (i, n)| {
-            acc.bitor(n.unsigned_shl(i as u32))
-        })
-}
-
-#[inline(always)]
-fn inter_u8<const N: usize>(mut x: <u8 as DimMaskU8<N>>::Output) -> <u8 as DimMaskU8<N>>::Output
-where
-    u8: DimMaskU8<N>,
-{
-    x = (x | (x << shift::<2, N>())) & <u8 as DimMaskU8<N>>::MASK_2;
-    x = (x | (x << shift::<1, N>())) & <u8 as DimMaskU8<N>>::MASK_1;
-    x = (x | (x << shift::<0, N>())) & <u8 as DimMaskU8<N>>::MASK_0;
-
-    x
-}
-
-#[inline(always)]
-fn inter_u16<const N: usize>(
-    mut x: <u16 as DimMaskU16<N>>::Output,
-) -> <u16 as DimMaskU16<N>>::Output
-where
-    u16: DimMaskU16<N>,
-{
-    x = (x | (x << shift::<3, N>())) & <u16 as DimMaskU16<N>>::MASK_3;
-    x = (x | (x << shift::<2, N>())) & <u16 as DimMaskU16<N>>::MASK_2;
-    x = (x | (x << shift::<1, N>())) & <u16 as DimMaskU16<N>>::MASK_1;
-    x = (x | (x << shift::<0, N>())) & <u16 as DimMaskU16<N>>::MASK_0;
-
-    x
-}
-
-#[inline]
-pub fn array_u8_index_of<const N: usize>(array: [u8; N]) -> <u8 as DimMaskU8<N>>::Output
-where
-    u8: DimMaskU8<N>,
-{
-    array
-        .map(|x| {
-            inter_u8::<N>(unsafe {
-                <<u8 as DimMaskU8<N>>::Output as NumCast>::from::<u8>(x).unwrap_unchecked()
-            })
-        })
-        .into_iter()
-        .enumerate()
-        .fold(<u8 as DimMaskU8<N>>::Output::zero(), |acc, (i, n)| {
-            acc.bitor(n.unsigned_shl(i as u32))
-        })
-}
-
-#[inline]
-pub fn array_u16_index_of<const N: usize>(array: [u16; N]) -> <u16 as DimMaskU16<N>>::Output
-where
-    u16: DimMaskU16<N>,
-{
-    array
-        .map(|x| {
-            inter_u16::<N>(unsafe {
-                <<u16 as DimMaskU16<N>>::Output as NumCast>::from::<u16>(x).unwrap_unchecked()
-            })
-        })
-        .into_iter()
-        .enumerate()
-        .fold(<u16 as DimMaskU16<N>>::Output::zero(), |acc, (i, n)| {
             acc.bitor(n.unsigned_shl(i as u32))
         })
 }
@@ -874,25 +743,5 @@ mod tests {
             let xy = coord_of_64(i);
             assert_eq!(index_of_64(xy), i);
         }
-    }
-
-    #[test]
-    fn generic() {
-        let index = array_u16_index_of([0xFFFF, 0xFFFF]);
-        let index2 = generic_array_index_of([0xFFFFu16, 0xFFFFu16]);
-
-        assert_eq!(index, index2);
-    }
-
-    #[test]
-    fn interleave() {
-        let x = array_u8_index_of([7u8, 7u8, 7u8]);
-        assert_eq!(x, 0b111111111);
-
-        let x = array_u8_index_of([7u8, 7u8]);
-        assert_eq!(x, 0b111111);
-
-        let x = array_u16_index_of([7u16, 7u16, 7u16]);
-        assert_eq!(x, 0b111111111);
     }
 }
