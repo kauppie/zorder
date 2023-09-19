@@ -145,6 +145,83 @@ impl Interleave for u64 {
     }
 }
 
+pub trait ArrayInterleave<I: Interleave, const N: usize> {
+    type Interleaved: PrimInt;
+
+    fn map(self, f: impl FnMut(I) -> Self::Interleaved) -> [Self::Interleaved; N];
+    fn widen(inter: <I as Interleave>::Interleaved) -> Self::Interleaved;
+}
+
+impl ArrayInterleave<u8, 2> for [u8; 2] {
+    type Interleaved = u16;
+
+    #[inline(always)]
+    fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 2] {
+        self.map(f)
+    }
+
+    #[inline(always)]
+    fn widen(inter: <u8 as Interleave>::Interleaved) -> Self::Interleaved {
+        inter as Self::Interleaved
+    }
+}
+
+impl ArrayInterleave<u16, 2> for [u16; 2] {
+    type Interleaved = u32;
+
+    #[inline(always)]
+    fn map(self, f: impl FnMut(u16) -> Self::Interleaved) -> [Self::Interleaved; 2] {
+        self.map(f)
+    }
+
+    #[inline(always)]
+    fn widen(inter: <u16 as Interleave>::Interleaved) -> Self::Interleaved {
+        inter as Self::Interleaved
+    }
+}
+
+impl ArrayInterleave<u32, 2> for [u32; 2] {
+    type Interleaved = u64;
+
+    #[inline(always)]
+    fn map(self, f: impl FnMut(u32) -> Self::Interleaved) -> [Self::Interleaved; 2] {
+        self.map(f)
+    }
+
+    #[inline(always)]
+    fn widen(inter: <u32 as Interleave>::Interleaved) -> Self::Interleaved {
+        inter as Self::Interleaved
+    }
+}
+
+impl ArrayInterleave<u8, 3> for [u8; 3] {
+    type Interleaved = u32;
+
+    #[inline(always)]
+    fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 3] {
+        self.map(f)
+    }
+
+    #[inline(always)]
+    fn widen(inter: <u8 as Interleave>::Interleaved) -> Self::Interleaved {
+        inter as Self::Interleaved
+    }
+}
+
+impl ArrayInterleave<u8, 4> for [u8; 4] {
+    type Interleaved = u32;
+
+    #[inline(always)]
+    fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 4] {
+        self.map(f)
+    }
+
+    #[inline(always)]
+    fn widen(inter: <u8 as Interleave>::Interleaved) -> Self::Interleaved {
+        inter as Self::Interleaved
+    }
+}
+
 /// Returns the Z-order curve index of the given 16-bit 2D coordinates.
 ///
 /// # Examples
@@ -181,13 +258,21 @@ pub fn generic_index_of<I: Interleave>((x, y): (I, I)) -> I::Interleaved {
 
 // NOTE: Only works correctly for 2-element arrays.
 #[inline]
-pub fn array_index_of<I: Interleave, const N: usize>(arr: [I; N]) -> I::Interleaved {
-    arr.map(Interleave::interleave)
+pub fn array_index_of<I, const N: usize>(
+    array: [I; N],
+) -> <[I; N] as ArrayInterleave<I, N>>::Interleaved
+where
+    I: Interleave,
+    [I; N]: ArrayInterleave<I, N>,
+{
+    array
+        .map(|x| <[I; N] as ArrayInterleave<I, N>>::widen(x.interleave()))
         .into_iter()
         .enumerate()
-        .fold(<I as Interleave>::Interleaved::zero(), |acc, (i, x)| {
-            acc.bitor(x.unsigned_shl(i as u32))
-        })
+        .fold(
+            <[I; N] as ArrayInterleave<I, N>>::Interleaved::zero(),
+            |acc, (i, x)| acc.bitor(x.unsigned_shl(i as u32)),
+        )
 }
 
 /// Returns the Z-order curve index of the given 32-bit 2D coordinates.
