@@ -73,78 +73,6 @@ use core::ops::BitOr;
 
 use num_traits::{PrimInt, Zero};
 
-pub trait Interleave {
-    type Interleaved: PrimInt;
-
-    fn interleave(self) -> Self::Interleaved;
-}
-
-impl Interleave for u8 {
-    type Interleaved = u16;
-
-    #[inline]
-    fn interleave(self) -> u16 {
-        let mut x = self as u16;
-
-        x = (x | (x << 4)) & 0x0F0F;
-        x = (x | (x << 2)) & 0x3333;
-        x = (x | (x << 1)) & 0x5555;
-
-        x
-    }
-}
-
-impl Interleave for u16 {
-    type Interleaved = u32;
-
-    #[inline]
-    fn interleave(self) -> u32 {
-        let mut x = self as u32;
-
-        x = (x | (x << 8)) & 0x00FF00FF;
-        x = (x | (x << 4)) & 0x0F0F0F0F;
-        x = (x | (x << 2)) & 0x33333333;
-        x = (x | (x << 1)) & 0x55555555;
-
-        x
-    }
-}
-
-impl Interleave for u32 {
-    type Interleaved = u64;
-
-    #[inline]
-    fn interleave(self) -> u64 {
-        let mut x = self as u64;
-
-        x = (x | (x << 16)) & 0x0000FFFF0000FFFF;
-        x = (x | (x << 8)) & 0x00FF00FF00FF00FF;
-        x = (x | (x << 4)) & 0x0F0F0F0F0F0F0F0F;
-        x = (x | (x << 2)) & 0x3333333333333333;
-        x = (x | (x << 1)) & 0x5555555555555555;
-
-        x
-    }
-}
-
-impl Interleave for u64 {
-    type Interleaved = u128;
-
-    #[inline]
-    fn interleave(self) -> u128 {
-        let mut x = self as u128;
-
-        x = (x | (x << 32)) & 0x00000000FFFFFFFF00000000FFFFFFFF;
-        x = (x | (x << 16)) & 0x0000FFFF0000FFFF0000FFFF0000FFFF;
-        x = (x | (x << 8)) & 0x00FF00FF00FF00FF00FF00FF00FF00FF;
-        x = (x | (x << 4)) & 0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F;
-        x = (x | (x << 2)) & 0x33333333333333333333333333333333;
-        x = (x | (x << 1)) & 0x55555555555555555555555555555555;
-
-        x
-    }
-}
-
 const fn interleave_shift<const I: usize, const N: usize>() -> usize {
     (N - 1) * (1 << I)
 }
@@ -761,5 +689,11 @@ mod tests {
             let xy = coord_of_64(i);
             assert_eq!(index_of_64(xy), i);
         }
+    }
+
+    #[test]
+    fn interleave() {
+        let x = array_index_of([7u32, 7u32]);
+        assert_eq!(x, 0b111111);
     }
 }
