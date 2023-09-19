@@ -71,7 +71,7 @@
 
 use core::ops::BitOr;
 
-use num_traits::{NumCast, PrimInt, Zero};
+use num_traits::{Num, NumCast, PrimInt, Zero};
 
 pub trait Interleave {
     type Interleaved: PrimInt;
@@ -393,8 +393,8 @@ where
     I: DimMask<N>,
 {
     array
-        .map(DimMask::<N>::interleave)
         .into_iter()
+        .map(DimMask::<N>::interleave)
         .enumerate()
         .fold(<I as DimMask<N>>::Output::zero(), |acc, (i, n)| {
             acc.bitor(n.unsigned_shl(i as u32))
