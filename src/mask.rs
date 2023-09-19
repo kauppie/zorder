@@ -156,10 +156,19 @@ impl Mask<2> for u64 {
     const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
 }
 
-pub trait Interleave<const N: usize> {
+pub trait Interleave<const N: usize>: private::Sealed {
     type Output: num_traits::PrimInt;
 
     fn interleave(self) -> Self::Output;
+}
+
+mod private {
+    pub trait Sealed {}
+
+    impl Sealed for u8 {}
+    impl Sealed for u16 {}
+    impl Sealed for u32 {}
+    impl Sealed for u64 {}
 }
 
 impl<const N: usize> Interleave<N> for u8
