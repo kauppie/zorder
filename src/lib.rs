@@ -71,7 +71,7 @@
 
 use core::ops::BitOr;
 
-use num_traits::{Num, NumCast, PrimInt, Zero};
+use num_traits::{PrimInt, Zero};
 
 pub trait Interleave {
     type Interleaved: PrimInt;
@@ -145,58 +145,7 @@ impl Interleave for u64 {
     }
 }
 
-pub trait ArrayInterleave<I: Interleave, const N: usize> {
-    type Interleaved: PrimInt;
-
-    fn map(self, f: impl FnMut(I) -> Self::Interleaved) -> [Self::Interleaved; N];
-}
-
-impl ArrayInterleave<u8, 2> for [u8; 2] {
-    type Interleaved = u16;
-
-    #[inline(always)]
-    fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 2] {
-        self.map(f)
-    }
-}
-
-impl ArrayInterleave<u16, 2> for [u16; 2] {
-    type Interleaved = u32;
-
-    #[inline(always)]
-    fn map(self, f: impl FnMut(u16) -> Self::Interleaved) -> [Self::Interleaved; 2] {
-        self.map(f)
-    }
-}
-
-impl ArrayInterleave<u32, 2> for [u32; 2] {
-    type Interleaved = u64;
-
-    #[inline(always)]
-    fn map(self, f: impl FnMut(u32) -> Self::Interleaved) -> [Self::Interleaved; 2] {
-        self.map(f)
-    }
-}
-
-impl ArrayInterleave<u8, 3> for [u8; 3] {
-    type Interleaved = u32;
-
-    #[inline(always)]
-    fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 3] {
-        self.map(f)
-    }
-}
-
-impl ArrayInterleave<u8, 4> for [u8; 4] {
-    type Interleaved = u32;
-
-    #[inline(always)]
-    fn map(self, f: impl FnMut(u8) -> Self::Interleaved) -> [Self::Interleaved; 4] {
-        self.map(f)
-    }
-}
-
-const fn shift<const I: usize, const N: usize>() -> usize {
+const fn interleave_shift<const I: usize, const N: usize>() -> usize {
     (N - 1) * (1 << I)
 }
 
@@ -219,172 +168,241 @@ const MASK_2_DIM_4: u128 = 0x000F000F000F000F000F000F000F000F;
 const MASK_1_DIM_4: u128 = 0x03030303030303030303030303030303;
 const MASK_0_DIM_4: u128 = 0x11111111111111111111111111111111;
 
+pub trait Mask<const N: usize> {
+    type Output: PrimInt;
+
+    const MASK_5: Self::Output;
+    const MASK_4: Self::Output;
+    const MASK_3: Self::Output;
+    const MASK_2: Self::Output;
+    const MASK_1: Self::Output;
+    const MASK_0: Self::Output;
+}
+
+impl Mask<2> for u8 {
+    type Output = u16;
+
+    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+    const MASK_4: Self::Output = 0;
+    const MASK_3: Self::Output = 0;
+}
+
+impl Mask<3> for u8 {
+    type Output = u32;
+
+    const MASK_2: Self::Output = MASK_2_DIM_3 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_3 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_3 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+    const MASK_4: Self::Output = 0;
+    const MASK_3: Self::Output = 0;
+}
+
+impl Mask<4> for u8 {
+    type Output = u32;
+
+    const MASK_2: Self::Output = MASK_2_DIM_4 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_4 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_4 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+    const MASK_4: Self::Output = 0;
+    const MASK_3: Self::Output = 0;
+}
+
+impl Mask<2> for u16 {
+    type Output = u32;
+
+    const MASK_3: Self::Output = MASK_3_DIM_2 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+    const MASK_4: Self::Output = 0;
+}
+
+impl Mask<3> for u16 {
+    type Output = u64;
+
+    const MASK_3: Self::Output = MASK_3_DIM_3 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_3 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_3 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_3 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+    const MASK_4: Self::Output = 0;
+}
+
+impl Mask<4> for u16 {
+    type Output = u64;
+
+    const MASK_3: Self::Output = MASK_3_DIM_4 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_4 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_4 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_4 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+    const MASK_4: Self::Output = 0;
+}
+
+impl Mask<2> for u32 {
+    type Output = u64;
+
+    const MASK_4: Self::Output = MASK_4_DIM_2 as Self::Output;
+    const MASK_3: Self::Output = MASK_3_DIM_2 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+}
+
+impl Mask<3> for u32 {
+    type Output = u128;
+
+    const MASK_4: Self::Output = MASK_4_DIM_3 as Self::Output;
+    const MASK_3: Self::Output = MASK_3_DIM_3 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_3 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_3 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_3 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+}
+
+impl Mask<4> for u32 {
+    type Output = u128;
+
+    const MASK_4: Self::Output = MASK_4_DIM_4 as Self::Output;
+    const MASK_3: Self::Output = MASK_3_DIM_4 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_4 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_4 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_4 as Self::Output;
+
+    // Unused masks.
+    const MASK_5: Self::Output = 0;
+}
+
+impl Mask<2> for u64 {
+    type Output = u128;
+
+    const MASK_5: Self::Output = MASK_5_DIM_2 as Self::Output;
+    const MASK_4: Self::Output = MASK_4_DIM_2 as Self::Output;
+    const MASK_3: Self::Output = MASK_3_DIM_2 as Self::Output;
+    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
+    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
+    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
+}
+
 pub trait DimMask<const N: usize> {
     type Output: PrimInt;
 
     fn interleave(self) -> Self::Output;
 }
 
-impl DimMask<2> for u8 {
-    type Output = u16;
+impl<const N: usize> DimMask<N> for u8
+where
+    u8: Mask<N>,
+{
+    type Output = <u8 as Mask<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
+        // SAFETY: casts between unsigned integers always succeed.
+        let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
-        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
-        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
+        x = (x | (x << interleave_shift::<2, N>())) & <u8 as Mask<N>>::MASK_2;
+        x = (x | (x << interleave_shift::<1, N>())) & <u8 as Mask<N>>::MASK_1;
+        x = (x | (x << interleave_shift::<0, N>())) & <u8 as Mask<N>>::MASK_0;
 
         x
     }
 }
 
-impl DimMask<3> for u8 {
-    type Output = u32;
+impl<const N: usize> DimMask<N> for u16
+where
+    u16: Mask<N>,
+{
+    type Output = <u16 as Mask<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
+        // SAFETY: casts between unsigned integers always succeed.
+        let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << shift::<2, 3>())) & MASK_2_DIM_3 as Self::Output;
-        x = (x | (x << shift::<1, 3>())) & MASK_1_DIM_3 as Self::Output;
-        x = (x | (x << shift::<0, 3>())) & MASK_0_DIM_3 as Self::Output;
+        x = (x | (x << interleave_shift::<3, N>())) & <u16 as Mask<N>>::MASK_3;
+        x = (x | (x << interleave_shift::<2, N>())) & <u16 as Mask<N>>::MASK_2;
+        x = (x | (x << interleave_shift::<1, N>())) & <u16 as Mask<N>>::MASK_1;
+        x = (x | (x << interleave_shift::<0, N>())) & <u16 as Mask<N>>::MASK_0;
 
         x
     }
 }
 
-impl DimMask<4> for u8 {
-    type Output = u32;
+impl<const N: usize> DimMask<N> for u32
+where
+    u32: Mask<N>,
+{
+    type Output = <u32 as Mask<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
+        // SAFETY: casts between unsigned integers always succeed.
+        let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << shift::<2, 4>())) & MASK_2_DIM_4 as Self::Output;
-        x = (x | (x << shift::<1, 4>())) & MASK_1_DIM_4 as Self::Output;
-        x = (x | (x << shift::<0, 4>())) & MASK_0_DIM_4 as Self::Output;
+        x = (x | (x << interleave_shift::<4, N>())) & <u32 as Mask<N>>::MASK_4;
+        x = (x | (x << interleave_shift::<3, N>())) & <u32 as Mask<N>>::MASK_3;
+        x = (x | (x << interleave_shift::<2, N>())) & <u32 as Mask<N>>::MASK_2;
+        x = (x | (x << interleave_shift::<1, N>())) & <u32 as Mask<N>>::MASK_1;
+        x = (x | (x << interleave_shift::<0, N>())) & <u32 as Mask<N>>::MASK_0;
 
         x
     }
 }
 
-impl DimMask<2> for u16 {
-    type Output = u32;
+impl<const N: usize> DimMask<N> for u64
+where
+    u64: Mask<N>,
+{
+    type Output = <u64 as Mask<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
+        // SAFETY: casts between unsigned integers always succeed.
+        let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << shift::<3, 2>())) & MASK_3_DIM_2 as Self::Output;
-        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
-        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
-        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
+        x = (x | (x << interleave_shift::<5, N>())) & <u64 as Mask<N>>::MASK_5;
+        x = (x | (x << interleave_shift::<4, N>())) & <u64 as Mask<N>>::MASK_4;
+        x = (x | (x << interleave_shift::<3, N>())) & <u64 as Mask<N>>::MASK_3;
+        x = (x | (x << interleave_shift::<2, N>())) & <u64 as Mask<N>>::MASK_2;
+        x = (x | (x << interleave_shift::<1, N>())) & <u64 as Mask<N>>::MASK_1;
+        x = (x | (x << interleave_shift::<0, N>())) & <u64 as Mask<N>>::MASK_0;
 
         x
     }
 }
 
-impl DimMask<3> for u16 {
-    type Output = u64;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
-
-        x = (x | (x << shift::<3, 3>())) & MASK_3_DIM_3 as Self::Output;
-        x = (x | (x << shift::<2, 3>())) & MASK_2_DIM_3 as Self::Output;
-        x = (x | (x << shift::<1, 3>())) & MASK_1_DIM_3 as Self::Output;
-        x = (x | (x << shift::<0, 3>())) & MASK_0_DIM_3 as Self::Output;
-
-        x
-    }
-}
-
-impl DimMask<4> for u16 {
-    type Output = u64;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
-
-        x = (x | (x << shift::<3, 4>())) & MASK_3_DIM_4 as Self::Output;
-        x = (x | (x << shift::<2, 4>())) & MASK_2_DIM_4 as Self::Output;
-        x = (x | (x << shift::<1, 4>())) & MASK_1_DIM_4 as Self::Output;
-        x = (x | (x << shift::<0, 4>())) & MASK_0_DIM_4 as Self::Output;
-
-        x
-    }
-}
-
-impl DimMask<2> for u32 {
-    type Output = u64;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
-
-        x = (x | (x << shift::<4, 2>())) & MASK_4_DIM_2 as Self::Output;
-        x = (x | (x << shift::<3, 2>())) & MASK_3_DIM_2 as Self::Output;
-        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
-        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
-        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
-
-        x
-    }
-}
-
-impl DimMask<3> for u32 {
-    type Output = u128;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
-
-        x = (x | (x << shift::<4, 3>())) & MASK_4_DIM_3 as Self::Output;
-        x = (x | (x << shift::<3, 3>())) & MASK_3_DIM_3 as Self::Output;
-        x = (x | (x << shift::<2, 3>())) & MASK_2_DIM_3 as Self::Output;
-        x = (x | (x << shift::<1, 3>())) & MASK_1_DIM_3 as Self::Output;
-        x = (x | (x << shift::<0, 3>())) & MASK_0_DIM_3 as Self::Output;
-
-        x
-    }
-}
-
-impl DimMask<4> for u32 {
-    type Output = u128;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
-
-        x = (x | (x << shift::<4, 4>())) & MASK_4_DIM_4 as Self::Output;
-        x = (x | (x << shift::<3, 4>())) & MASK_3_DIM_4 as Self::Output;
-        x = (x | (x << shift::<2, 4>())) & MASK_2_DIM_4 as Self::Output;
-        x = (x | (x << shift::<1, 4>())) & MASK_1_DIM_4 as Self::Output;
-        x = (x | (x << shift::<0, 4>())) & MASK_0_DIM_4 as Self::Output;
-
-        x
-    }
-}
-
-impl DimMask<2> for u64 {
-    type Output = u128;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        let mut x = self as Self::Output;
-
-        x = (x | (x << shift::<5, 2>())) & MASK_5_DIM_2 as Self::Output;
-        x = (x | (x << shift::<4, 2>())) & MASK_4_DIM_2 as Self::Output;
-        x = (x | (x << shift::<3, 2>())) & MASK_3_DIM_2 as Self::Output;
-        x = (x | (x << shift::<2, 2>())) & MASK_2_DIM_2 as Self::Output;
-        x = (x | (x << shift::<1, 2>())) & MASK_1_DIM_2 as Self::Output;
-        x = (x | (x << shift::<0, 2>())) & MASK_0_DIM_2 as Self::Output;
-
-        x
-    }
+/// Casts numeric types without checking for success.
+#[inline(always)]
+unsafe fn num_cast<I, O>(input: I) -> O
+where
+    I: num_traits::ToPrimitive,
+    O: num_traits::NumCast,
+{
+    <O as num_traits::NumCast>::from(input).unwrap_unchecked()
 }
 
 #[inline]
