@@ -7,8 +7,28 @@ use zorder::{
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("index_of", |b| b.iter(|| index_of(black_box((2374, 8761)))));
 
-    c.bench_function("generic_array_index_of", |b| {
+    c.bench_function("array_index_of_u64", |b| {
+        b.iter(|| array_index_of(black_box([2765132312347u64, 769718192876348788u64])))
+    });
+
+    c.bench_function("array_index_of_u32", |b| {
+        b.iter(|| array_index_of(black_box([2312347u32, 76971888u32])))
+    });
+
+    c.bench_function("array_index_of_u32_dim3", |b| {
+        b.iter(|| array_index_of(black_box([2312347u32, 76971888u32, 411237u32])))
+    });
+
+    c.bench_function("array_index_of_u16", |b| {
         b.iter(|| array_index_of(black_box([2374u16, 8761u16])))
+    });
+
+    c.bench_function("array_index_of_u16_dim3", |b| {
+        b.iter(|| array_index_of(black_box([23123u16, 1888u16, 11237u16])))
+    });
+
+    c.bench_function("array_index_of_u8", |b| {
+        b.iter(|| array_index_of(black_box([237u8, 76u8])))
     });
 
     c.bench_function("coord_of", |b| b.iter(|| coord_of(black_box(23748761))));
