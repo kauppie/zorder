@@ -1,5 +1,6 @@
 use num_traits::PrimInt;
 
+/// Used to determine the number of bits in the given type.
 pub trait BitCount {
     const BITS: u32;
 
@@ -7,68 +8,47 @@ pub trait BitCount {
     const BITS_ILOG2: u32 = Self::BITS.trailing_zeros();
 }
 
-impl BitCount for u8 {
-    const BITS: u32 = Self::BITS;
+macro_rules! impl_bit_count {
+    ($($t:ty),*) => {
+        $(
+            impl BitCount for $t {
+                const BITS: u32 = Self::BITS;
+            }
+        )*
+    };
 }
 
-impl BitCount for u16 {
-    const BITS: u32 = Self::BITS;
+impl_bit_count! {
+    u8, u16, u32, u64, u128
 }
 
-impl BitCount for u32 {
-    const BITS: u32 = Self::BITS;
-}
-
-impl BitCount for u64 {
-    const BITS: u32 = Self::BITS;
-}
-
-impl BitCount for u128 {
-    const BITS: u32 = Self::BITS;
-}
-
+/// Used to determine the minimum width output type which
+/// fits the given input type `N` (dimensions) number of times.
 pub trait DimensionOutput<const N: usize>: private::Sealed {
     type Output: num_traits::PrimInt + BitCount;
 }
 
-impl DimensionOutput<2> for u8 {
-    type Output = u16;
+macro_rules! impl_dimension_output {
+    ($($impl_type:ty, $dim:expr => $out_type:ty);*) => {
+        $(
+            impl DimensionOutput<$dim> for $impl_type {
+                type Output = $out_type;
+            }
+        )*
+    };
 }
 
-impl DimensionOutput<3> for u8 {
-    type Output = u32;
-}
-
-impl DimensionOutput<4> for u8 {
-    type Output = u32;
-}
-
-impl DimensionOutput<2> for u16 {
-    type Output = u32;
-}
-
-impl DimensionOutput<3> for u16 {
-    type Output = u64;
-}
-
-impl DimensionOutput<4> for u16 {
-    type Output = u64;
-}
-
-impl DimensionOutput<2> for u32 {
-    type Output = u64;
-}
-
-impl DimensionOutput<3> for u32 {
-    type Output = u128;
-}
-
-impl DimensionOutput<4> for u32 {
-    type Output = u128;
-}
-
-impl DimensionOutput<2> for u64 {
-    type Output = u128;
+impl_dimension_output! {
+    u8, 2 => u16;
+    u8, 3 => u32;
+    u8, 4 => u32;
+    u16, 2 => u32;
+    u16, 3 => u64;
+    u16, 4 => u64;
+    u32, 2 => u64;
+    u32, 3 => u128;
+    u32, 4 => u128;
+    u64, 2 => u128
 }
 
 /// Interleaves the bits of the given number, while taking output dimension
