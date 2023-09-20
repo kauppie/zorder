@@ -87,11 +87,11 @@ pub trait Interleave<const N: usize>: private::Sealed {
     fn interleave(self) -> Self::Output;
 }
 
-impl<const N: usize> Interleave<N> for u8
+impl<T, const N: usize> Interleave<N> for T
 where
-    u8: DimensionOutput<N>,
+    T: DimensionOutput<N> + BitCount + PrimInt,
 {
-    type Output = <u8 as DimensionOutput<N>>::Output;
+    type Output = <T as DimensionOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -99,68 +99,10 @@ where
         let mut x: Self::Output = unsafe { num_cast(self) };
 
         for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
-            x = (x | x.unsigned_shl(interleave_shift(i, Self::U32_DIM)))
-                & interleave_mask(Self::U32_DIM, 1 << i);
-        }
+            let mask = interleave_mask(Self::U32_DIM, 1 << i);
+            let shift_count = interleave_shift(i, Self::U32_DIM);
 
-        x
-    }
-}
-
-impl<const N: usize> Interleave<N> for u16
-where
-    u16: DimensionOutput<N>,
-{
-    type Output = <u16 as DimensionOutput<N>>::Output;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        // SAFETY: casts between unsigned integers always succeed.
-        let mut x: Self::Output = unsafe { num_cast(self) };
-
-        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
-            x = (x | (x.unsigned_shl(interleave_shift(i, Self::U32_DIM))))
-                & interleave_mask(N as u32, 1 << i);
-        }
-
-        x
-    }
-}
-
-impl<const N: usize> Interleave<N> for u32
-where
-    u32: DimensionOutput<N>,
-{
-    type Output = <u32 as DimensionOutput<N>>::Output;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        // SAFETY: casts between unsigned integers always succeed.
-        let mut x: Self::Output = unsafe { num_cast(self) };
-
-        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
-            x = (x | (x.unsigned_shl(interleave_shift(i, Self::U32_DIM))))
-                & interleave_mask(N as u32, 1 << i);
-        }
-
-        x
-    }
-}
-
-impl<const N: usize> Interleave<N> for u64
-where
-    u64: DimensionOutput<N>,
-{
-    type Output = <u64 as DimensionOutput<N>>::Output;
-
-    #[inline(always)]
-    fn interleave(self) -> Self::Output {
-        // SAFETY: casts between unsigned integers always succeed.
-        let mut x: Self::Output = unsafe { num_cast(self) };
-
-        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
-            x = (x | (x.unsigned_shl(interleave_shift(i, Self::U32_DIM))))
-                & interleave_mask(N as u32, 1 << i);
+            x = (x | x.unsigned_shl(shift_count)) & mask;
         }
 
         x
