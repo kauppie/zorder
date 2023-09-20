@@ -1,159 +1,45 @@
-const MASK_5_DIM_2: u128 = 0x00000000FFFFFFFF00000000FFFFFFFF;
-const MASK_4_DIM_2: u128 = 0x0000FFFF0000FFFF0000FFFF0000FFFF;
-const MASK_3_DIM_2: u128 = 0x00FF00FF00FF00FF00FF00FF00FF00FF;
-const MASK_2_DIM_2: u128 = 0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F;
-const MASK_1_DIM_2: u128 = 0x33333333333333333333333333333333;
-const MASK_0_DIM_2: u128 = 0x55555555555555555555555555555555;
-
-const MASK_4_DIM_3: u128 = 0x0000FFFF00000000FFFF00000000FFFF;
-const MASK_3_DIM_3: u128 = 0xFF0000FF0000FF0000FF0000FF0000FF;
-const MASK_2_DIM_3: u128 = 0x0F00F00F00F00F00F00F00F00F00F00F;
-const MASK_1_DIM_3: u128 = 0xC30C30C30C30C30C30C30C30C30C30C3;
-const MASK_0_DIM_3: u128 = 0x49249249249249249249249249249249;
-
-const MASK_4_DIM_4: u128 = 0x000000000000FFFF000000000000FFFF;
-const MASK_3_DIM_4: u128 = 0x000000FF000000FF000000FF000000FF;
-const MASK_2_DIM_4: u128 = 0x000F000F000F000F000F000F000F000F;
-const MASK_1_DIM_4: u128 = 0x03030303030303030303030303030303;
-const MASK_0_DIM_4: u128 = 0x11111111111111111111111111111111;
-
-pub trait Mask<const N: usize> {
+pub trait DimensionOutput<const N: usize>: private::Sealed {
     type Output: num_traits::PrimInt + BitCount;
-
-    const MASK_5: Self::Output;
-    const MASK_4: Self::Output;
-    const MASK_3: Self::Output;
-    const MASK_2: Self::Output;
-    const MASK_1: Self::Output;
-    const MASK_0: Self::Output;
 }
 
-impl Mask<2> for u8 {
+impl DimensionOutput<2> for u8 {
     type Output = u16;
-
-    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
-    const MASK_4: Self::Output = 0;
-    const MASK_3: Self::Output = 0;
 }
 
-impl Mask<3> for u8 {
+impl DimensionOutput<3> for u8 {
     type Output = u32;
-
-    const MASK_2: Self::Output = MASK_2_DIM_3 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_3 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_3 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
-    const MASK_4: Self::Output = 0;
-    const MASK_3: Self::Output = 0;
 }
 
-impl Mask<4> for u8 {
+impl DimensionOutput<4> for u8 {
     type Output = u32;
-
-    const MASK_2: Self::Output = MASK_2_DIM_4 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_4 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_4 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
-    const MASK_4: Self::Output = 0;
-    const MASK_3: Self::Output = 0;
 }
 
-impl Mask<2> for u16 {
+impl DimensionOutput<2> for u16 {
     type Output = u32;
-
-    const MASK_3: Self::Output = MASK_3_DIM_2 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
-    const MASK_4: Self::Output = 0;
 }
 
-impl Mask<3> for u16 {
+impl DimensionOutput<3> for u16 {
     type Output = u64;
-
-    const MASK_3: Self::Output = MASK_3_DIM_3 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_3 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_3 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_3 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
-    const MASK_4: Self::Output = 0;
 }
 
-impl Mask<4> for u16 {
+impl DimensionOutput<4> for u16 {
     type Output = u64;
-
-    const MASK_3: Self::Output = MASK_3_DIM_4 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_4 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_4 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_4 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
-    const MASK_4: Self::Output = 0;
 }
 
-impl Mask<2> for u32 {
+impl DimensionOutput<2> for u32 {
     type Output = u64;
-
-    const MASK_4: Self::Output = MASK_4_DIM_2 as Self::Output;
-    const MASK_3: Self::Output = MASK_3_DIM_2 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
 }
 
-impl Mask<3> for u32 {
+impl DimensionOutput<3> for u32 {
     type Output = u128;
-
-    const MASK_4: Self::Output = MASK_4_DIM_3 as Self::Output;
-    const MASK_3: Self::Output = MASK_3_DIM_3 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_3 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_3 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_3 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
 }
 
-impl Mask<4> for u32 {
+impl DimensionOutput<4> for u32 {
     type Output = u128;
-
-    const MASK_4: Self::Output = MASK_4_DIM_4 as Self::Output;
-    const MASK_3: Self::Output = MASK_3_DIM_4 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_4 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_4 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_4 as Self::Output;
-
-    // Unused masks.
-    const MASK_5: Self::Output = 0;
 }
 
-impl Mask<2> for u64 {
+impl DimensionOutput<2> for u64 {
     type Output = u128;
-
-    const MASK_5: Self::Output = MASK_5_DIM_2 as Self::Output;
-    const MASK_4: Self::Output = MASK_4_DIM_2 as Self::Output;
-    const MASK_3: Self::Output = MASK_3_DIM_2 as Self::Output;
-    const MASK_2: Self::Output = MASK_2_DIM_2 as Self::Output;
-    const MASK_1: Self::Output = MASK_1_DIM_2 as Self::Output;
-    const MASK_0: Self::Output = MASK_0_DIM_2 as Self::Output;
 }
 
 pub trait Interleave<const N: usize>: private::Sealed {
@@ -173,9 +59,9 @@ mod private {
 
 impl<const N: usize> Interleave<N> for u8
 where
-    u8: Mask<N>,
+    u8: DimensionOutput<N>,
 {
-    type Output = <u8 as Mask<N>>::Output;
+    type Output = <u8 as DimensionOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -192,9 +78,9 @@ where
 
 impl<const N: usize> Interleave<N> for u16
 where
-    u16: Mask<N>,
+    u16: DimensionOutput<N>,
 {
-    type Output = <u16 as Mask<N>>::Output;
+    type Output = <u16 as DimensionOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -212,9 +98,9 @@ where
 
 impl<const N: usize> Interleave<N> for u32
 where
-    u32: Mask<N>,
+    u32: DimensionOutput<N>,
 {
-    type Output = <u32 as Mask<N>>::Output;
+    type Output = <u32 as DimensionOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -233,9 +119,9 @@ where
 
 impl<const N: usize> Interleave<N> for u64
 where
-    u64: Mask<N>,
+    u64: DimensionOutput<N>,
 {
-    type Output = <u64 as Mask<N>>::Output;
+    type Output = <u64 as DimensionOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -335,39 +221,87 @@ mod tests {
 
     #[test]
     fn dim2() {
-        assert_eq!(interleave_mask::<u128>(2, 32), MASK_5_DIM_2);
-        assert_eq!(interleave_mask::<u128>(2, 16), MASK_4_DIM_2);
-        assert_eq!(interleave_mask::<u128>(2, 8), MASK_3_DIM_2);
-        assert_eq!(interleave_mask::<u128>(2, 4), MASK_2_DIM_2);
-        assert_eq!(interleave_mask::<u128>(2, 2), MASK_1_DIM_2);
-        assert_eq!(interleave_mask::<u128>(2, 1), MASK_0_DIM_2);
+        assert_eq!(
+            interleave_mask::<u128>(2, 32),
+            0x00000000FFFFFFFF00000000FFFFFFFF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(2, 16),
+            0x0000FFFF0000FFFF0000FFFF0000FFFF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(2, 8),
+            0x00FF00FF00FF00FF00FF00FF00FF00FF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(2, 4),
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F
+        );
+        assert_eq!(
+            interleave_mask::<u128>(2, 2),
+            0x33333333333333333333333333333333
+        );
+        assert_eq!(
+            interleave_mask::<u128>(2, 1),
+            0x55555555555555555555555555555555
+        );
     }
 
     #[test]
     fn dim3() {
-        assert_eq!(interleave_mask::<u128>(3, 16), MASK_4_DIM_3);
-        assert_eq!(interleave_mask::<u128>(3, 8), MASK_3_DIM_3);
-        assert_eq!(interleave_mask::<u128>(3, 4), MASK_2_DIM_3);
-        assert_eq!(interleave_mask::<u128>(3, 2), MASK_1_DIM_3);
-        assert_eq!(interleave_mask::<u128>(3, 1), MASK_0_DIM_3);
+        assert_eq!(
+            interleave_mask::<u128>(3, 16),
+            0x0000FFFF00000000FFFF00000000FFFF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(3, 8),
+            0xFF0000FF0000FF0000FF0000FF0000FF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(3, 4),
+            0x0F00F00F00F00F00F00F00F00F00F00F
+        );
+        assert_eq!(
+            interleave_mask::<u128>(3, 2),
+            0xC30C30C30C30C30C30C30C30C30C30C3
+        );
+        assert_eq!(
+            interleave_mask::<u128>(3, 1),
+            0x49249249249249249249249249249249
+        );
     }
 
     #[test]
     fn dim4() {
-        assert_eq!(interleave_mask::<u128>(4, 16), MASK_4_DIM_4);
-        assert_eq!(interleave_mask::<u128>(4, 8), MASK_3_DIM_4);
-        assert_eq!(interleave_mask::<u128>(4, 4), MASK_2_DIM_4);
-        assert_eq!(interleave_mask::<u128>(4, 2), MASK_1_DIM_4);
-        assert_eq!(interleave_mask::<u128>(4, 1), MASK_0_DIM_4);
+        assert_eq!(
+            interleave_mask::<u128>(4, 16),
+            0x000000000000FFFF000000000000FFFF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(4, 8),
+            0x000000FF000000FF000000FF000000FF
+        );
+        assert_eq!(
+            interleave_mask::<u128>(4, 4),
+            0x000F000F000F000F000F000F000F000F
+        );
+        assert_eq!(
+            interleave_mask::<u128>(4, 2),
+            0x03030303030303030303030303030303
+        );
+        assert_eq!(
+            interleave_mask::<u128>(4, 1),
+            0x11111111111111111111111111111111
+        );
     }
 
     #[test]
     fn truncated_mask() {
-        assert_eq!(interleave_mask::<u32>(2, 32), MASK_5_DIM_2 as u32);
-        assert_eq!(interleave_mask::<u32>(2, 16), MASK_4_DIM_2 as u32);
-        assert_eq!(interleave_mask::<u32>(2, 8), MASK_3_DIM_2 as u32);
-        assert_eq!(interleave_mask::<u32>(2, 4), MASK_2_DIM_2 as u32);
-        assert_eq!(interleave_mask::<u32>(2, 2), MASK_1_DIM_2 as u32);
-        assert_eq!(interleave_mask::<u32>(2, 1), MASK_0_DIM_2 as u32);
+        assert_eq!(interleave_mask::<u32>(2, 32), 0xFFFFFFFF);
+        assert_eq!(interleave_mask::<u32>(2, 16), 0x0000FFFF);
+        assert_eq!(interleave_mask::<u32>(2, 8), 0x00FF00FF);
+        assert_eq!(interleave_mask::<u32>(2, 4), 0x0F0F0F0F);
+        assert_eq!(interleave_mask::<u32>(2, 2), 0x33333333);
+        assert_eq!(interleave_mask::<u32>(2, 1), 0x55555555);
     }
 }
