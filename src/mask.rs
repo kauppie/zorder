@@ -1,5 +1,10 @@
+use num_traits::PrimInt;
+
 pub trait BitCount {
     const BITS: u32;
+
+    // HACK: only works for powers of 2.
+    const BITS_ILOG2: u32 = Self::BITS.trailing_zeros();
 }
 
 impl BitCount for u8 {
@@ -76,6 +81,9 @@ impl DimensionOutput<2> for u64 {
 pub trait Interleave<const N: usize>: private::Sealed {
     type Output: num_traits::PrimInt;
 
+    // NOTE: This is a workaround to not need type conversions in runtime code.
+    const U32_DIM: u32 = N as u32;
+
     fn interleave(self) -> Self::Output;
 }
 
@@ -88,11 +96,12 @@ where
     #[inline(always)]
     fn interleave(self) -> Self::Output {
         // SAFETY: casts between unsigned integers always succeed.
-        let mut x = unsafe { num_cast(self) };
+        let mut x: Self::Output = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
-        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
-        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
+        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
+            x = (x | x.unsigned_shl(interleave_shift(i, Self::U32_DIM)))
+                & interleave_mask(Self::U32_DIM, 1 << i);
+        }
 
         x
     }
@@ -107,12 +116,12 @@ where
     #[inline(always)]
     fn interleave(self) -> Self::Output {
         // SAFETY: casts between unsigned integers always succeed.
-        let mut x = unsafe { num_cast(self) };
+        let mut x: Self::Output = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<3, N>())) & interleave_mask(N as u32, 1 << 3);
-        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
-        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
-        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
+        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
+            x = (x | (x.unsigned_shl(interleave_shift(i, Self::U32_DIM))))
+                & interleave_mask(N as u32, 1 << i);
+        }
 
         x
     }
@@ -127,13 +136,12 @@ where
     #[inline(always)]
     fn interleave(self) -> Self::Output {
         // SAFETY: casts between unsigned integers always succeed.
-        let mut x = unsafe { num_cast(self) };
+        let mut x: Self::Output = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<4, N>())) & interleave_mask(N as u32, 1 << 4);
-        x = (x | (x << interleave_shift::<3, N>())) & interleave_mask(N as u32, 1 << 3);
-        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
-        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
-        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
+        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
+            x = (x | (x.unsigned_shl(interleave_shift(i, Self::U32_DIM))))
+                & interleave_mask(N as u32, 1 << i);
+        }
 
         x
     }
@@ -148,14 +156,12 @@ where
     #[inline(always)]
     fn interleave(self) -> Self::Output {
         // SAFETY: casts between unsigned integers always succeed.
-        let mut x = unsafe { num_cast(self) };
+        let mut x: Self::Output = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<5, N>())) & interleave_mask(N as u32, 1 << 5);
-        x = (x | (x << interleave_shift::<4, N>())) & interleave_mask(N as u32, 1 << 4);
-        x = (x | (x << interleave_shift::<3, N>())) & interleave_mask(N as u32, 1 << 3);
-        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
-        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
-        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
+        for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
+            x = (x | (x.unsigned_shl(interleave_shift(i, Self::U32_DIM))))
+                & interleave_mask(N as u32, 1 << i);
+        }
 
         x
     }
@@ -172,8 +178,9 @@ where
 }
 
 /// Calculates the shift amount for the given interleave step and dimension.
-const fn interleave_shift<const I: usize, const N: usize>() -> usize {
-    (1 << I) * (N - 1)
+#[inline(always)]
+const fn interleave_shift(i: u32, n: u32) -> u32 {
+    (1 << i) * (n - 1)
 }
 
 /// # Panics
@@ -327,5 +334,14 @@ mod tests {
         assert_eq!(interleave_mask::<u32>(2, 4), 0x0F0F_0F0F);
         assert_eq!(interleave_mask::<u32>(2, 2), 0x3333_3333);
         assert_eq!(interleave_mask::<u32>(2, 1), 0x5555_5555);
+    }
+
+    #[test]
+    fn ilog2() {
+        assert_eq!(u8::BITS_ILOG2, 3);
+        assert_eq!(u16::BITS_ILOG2, 4);
+        assert_eq!(u32::BITS_ILOG2, 5);
+        assert_eq!(u64::BITS_ILOG2, 6);
+        assert_eq!(u128::BITS_ILOG2, 7);
     }
 }
