@@ -267,3 +267,103 @@ where
 const fn interleave_shift<const I: usize, const N: usize>() -> usize {
     (1 << I) * (N - 1)
 }
+
+pub trait BitCount {
+    const BITS: u32;
+}
+
+impl BitCount for u8 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u16 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u32 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u64 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u128 {
+    const BITS: u32 = Self::BITS;
+}
+
+// Masks with zero bits are not allowed.
+fn mask<T: num_traits::PrimInt + BitCount>(bits: u32) -> T {
+    <T as num_traits::Bounded>::max_value().unsigned_shr(<T as BitCount>::BITS - bits)
+}
+
+fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
+    let mut acc = <T as num_traits::Zero>::zero();
+    let mask = mask::<T>(bits);
+
+    let ceil_div_dim = (<T as BitCount>::BITS + dim - 1) / dim;
+    let ceil_div_bits = (ceil_div_dim + bits - 1) / bits;
+
+    for i in 0..ceil_div_bits {
+        acc = acc | mask.unsigned_shl(i * dim * bits);
+    }
+
+    acc
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mask_test() {
+        assert_eq!(mask::<u8>(4), 0xF);
+        assert_eq!(mask::<u16>(4), 0xF);
+        assert_eq!(mask::<u32>(4), 0xF);
+        assert_eq!(mask::<u64>(4), 0xF);
+        assert_eq!(mask::<u128>(4), 0xF);
+
+        assert_eq!(mask::<u8>(8), 0xFF);
+        assert_eq!(mask::<u16>(16), 0xFFFF);
+        assert_eq!(mask::<u32>(32), 0xFFFF_FFFF);
+        assert_eq!(mask::<u64>(64), 0xFFFF_FFFF_FFFF_FFFF);
+        assert_eq!(mask::<u128>(128), 0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF);
+    }
+
+    #[test]
+    fn dim2() {
+        assert_eq!(interleave_mask::<u128>(2, 32), MASK_5_DIM_2);
+        assert_eq!(interleave_mask::<u128>(2, 16), MASK_4_DIM_2);
+        assert_eq!(interleave_mask::<u128>(2, 8), MASK_3_DIM_2);
+        assert_eq!(interleave_mask::<u128>(2, 4), MASK_2_DIM_2);
+        assert_eq!(interleave_mask::<u128>(2, 2), MASK_1_DIM_2);
+        assert_eq!(interleave_mask::<u128>(2, 1), MASK_0_DIM_2);
+    }
+
+    #[test]
+    fn dim3() {
+        assert_eq!(interleave_mask::<u128>(3, 16), MASK_4_DIM_3);
+        assert_eq!(interleave_mask::<u128>(3, 8), MASK_3_DIM_3);
+        assert_eq!(interleave_mask::<u128>(3, 4), MASK_2_DIM_3);
+        assert_eq!(interleave_mask::<u128>(3, 2), MASK_1_DIM_3);
+        assert_eq!(interleave_mask::<u128>(3, 1), MASK_0_DIM_3);
+    }
+
+    #[test]
+    fn dim4() {
+        assert_eq!(interleave_mask::<u128>(4, 16), MASK_4_DIM_4);
+        assert_eq!(interleave_mask::<u128>(4, 8), MASK_3_DIM_4);
+        assert_eq!(interleave_mask::<u128>(4, 4), MASK_2_DIM_4);
+        assert_eq!(interleave_mask::<u128>(4, 2), MASK_1_DIM_4);
+        assert_eq!(interleave_mask::<u128>(4, 1), MASK_0_DIM_4);
+    }
+
+    #[test]
+    fn truncated_mask() {
+        assert_eq!(interleave_mask::<u32>(2, 32), MASK_5_DIM_2 as u32);
+        assert_eq!(interleave_mask::<u32>(2, 16), MASK_4_DIM_2 as u32);
+        assert_eq!(interleave_mask::<u32>(2, 8), MASK_3_DIM_2 as u32);
+        assert_eq!(interleave_mask::<u32>(2, 4), MASK_2_DIM_2 as u32);
+        assert_eq!(interleave_mask::<u32>(2, 2), MASK_1_DIM_2 as u32);
+        assert_eq!(interleave_mask::<u32>(2, 1), MASK_0_DIM_2 as u32);
+    }
+}
