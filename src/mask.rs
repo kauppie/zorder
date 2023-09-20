@@ -1,3 +1,27 @@
+pub trait BitCount {
+    const BITS: u32;
+}
+
+impl BitCount for u8 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u16 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u32 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u64 {
+    const BITS: u32 = Self::BITS;
+}
+
+impl BitCount for u128 {
+    const BITS: u32 = Self::BITS;
+}
+
 pub trait DimensionOutput<const N: usize>: private::Sealed {
     type Output: num_traits::PrimInt + BitCount;
 }
@@ -42,19 +66,17 @@ impl DimensionOutput<2> for u64 {
     type Output = u128;
 }
 
+/// Interleaves the bits of the given number, while taking output dimension
+/// into account.
+///
+/// Naive implementation of this algorithm would be O(n) where n is the
+/// number of bits in the number. Implementations seen here are O(log n).
+/// They are extrapolated and generalized from the algorithm described here:
+/// http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN.
 pub trait Interleave<const N: usize>: private::Sealed {
     type Output: num_traits::PrimInt;
 
     fn interleave(self) -> Self::Output;
-}
-
-mod private {
-    pub trait Sealed {}
-
-    impl Sealed for u8 {}
-    impl Sealed for u16 {}
-    impl Sealed for u32 {}
-    impl Sealed for u64 {}
 }
 
 impl<const N: usize> Interleave<N> for u8
@@ -154,31 +176,12 @@ const fn interleave_shift<const I: usize, const N: usize>() -> usize {
     (1 << I) * (N - 1)
 }
 
-pub trait BitCount {
-    const BITS: u32;
-}
-
-impl BitCount for u8 {
-    const BITS: u32 = Self::BITS;
-}
-
-impl BitCount for u16 {
-    const BITS: u32 = Self::BITS;
-}
-
-impl BitCount for u32 {
-    const BITS: u32 = Self::BITS;
-}
-
-impl BitCount for u64 {
-    const BITS: u32 = Self::BITS;
-}
-
-impl BitCount for u128 {
-    const BITS: u32 = Self::BITS;
-}
-
-// Masks with zero bits are not allowed.
+/// # Panics
+///
+/// If any of the following conditions are met:
+///
+/// - `bits` == 0
+/// - `bits` > `T::BITS`.
 #[inline(always)]
 fn mask<T: num_traits::PrimInt + BitCount>(bits: u32) -> T {
     <T as num_traits::Bounded>::max_value().unsigned_shr(<T as BitCount>::BITS - bits)
@@ -199,13 +202,22 @@ fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T 
     acc
 }
 
+mod private {
+    pub trait Sealed {}
+
+    impl Sealed for u8 {}
+    impl Sealed for u16 {}
+    impl Sealed for u32 {}
+    impl Sealed for u64 {}
+}
+
 mod tests {
     // This is false positive.
     #[allow(unused_imports)]
     use super::*;
 
     #[test]
-    fn mask_test() {
+    fn allowed_masks() {
         assert_eq!(mask::<u8>(4), 0xF);
         assert_eq!(mask::<u16>(4), 0xF);
         assert_eq!(mask::<u32>(4), 0xF);
@@ -220,30 +232,42 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn zero_mask() {
+        mask::<u8>(0);
+    }
+
+    #[test]
+    #[should_panic]
+    fn too_large_mask() {
+        mask::<u8>(u8::MAX as u32 + 1);
+    }
+
+    #[test]
     fn dim2() {
         assert_eq!(
             interleave_mask::<u128>(2, 32),
-            0x00000000FFFFFFFF00000000FFFFFFFF
+            0x0000_0000_FFFF_FFFF_00000000_FFFF_FFFF
         );
         assert_eq!(
             interleave_mask::<u128>(2, 16),
-            0x0000FFFF0000FFFF0000FFFF0000FFFF
+            0x0000_FFFF_0000_FFFF_0000_FFFF_0000_FFFF
         );
         assert_eq!(
             interleave_mask::<u128>(2, 8),
-            0x00FF00FF00FF00FF00FF00FF00FF00FF
+            0x00FF_00FF_00FF_00FF_00FF_00FF_00FF_00FF
         );
         assert_eq!(
             interleave_mask::<u128>(2, 4),
-            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F
+            0x0F0F_0F0F_0F0F_0F0F_0F0F_0F0F_0F0F_0F0F
         );
         assert_eq!(
             interleave_mask::<u128>(2, 2),
-            0x33333333333333333333333333333333
+            0x3333_3333_3333_3333_3333_3333_3333_3333
         );
         assert_eq!(
             interleave_mask::<u128>(2, 1),
-            0x55555555555555555555555555555555
+            0x5555_5555_5555_5555_5555_5555_5555_5555
         );
     }
 
@@ -251,23 +275,23 @@ mod tests {
     fn dim3() {
         assert_eq!(
             interleave_mask::<u128>(3, 16),
-            0x0000FFFF00000000FFFF00000000FFFF
+            0x0000_FFFF_0000_0000_FFFF_0000_0000_FFFF
         );
         assert_eq!(
             interleave_mask::<u128>(3, 8),
-            0xFF0000FF0000FF0000FF0000FF0000FF
+            0xFF00_00FF_0000_FF00_00FF_0000_FF00_00FF
         );
         assert_eq!(
             interleave_mask::<u128>(3, 4),
-            0x0F00F00F00F00F00F00F00F00F00F00F
+            0x0F00_F00F_00F0_0F00_F00F_00F0_0F00_F00F
         );
         assert_eq!(
             interleave_mask::<u128>(3, 2),
-            0xC30C30C30C30C30C30C30C30C30C30C3
+            0xC30C_30C3_0C30_C30C_30C3_0C30_C30C_30C3
         );
         assert_eq!(
             interleave_mask::<u128>(3, 1),
-            0x49249249249249249249249249249249
+            0x4924_9249_2492_4924_9249_2492_4924_9249
         );
     }
 
@@ -275,33 +299,33 @@ mod tests {
     fn dim4() {
         assert_eq!(
             interleave_mask::<u128>(4, 16),
-            0x000000000000FFFF000000000000FFFF
+            0x0000_0000_0000_FFFF_0000_0000_0000_FFFF
         );
         assert_eq!(
             interleave_mask::<u128>(4, 8),
-            0x000000FF000000FF000000FF000000FF
+            0x0000_00FF_0000_00FF_0000_00FF_0000_00FF
         );
         assert_eq!(
             interleave_mask::<u128>(4, 4),
-            0x000F000F000F000F000F000F000F000F
+            0x000F_000F_000F_000F_000F_000F_000F_000F
         );
         assert_eq!(
             interleave_mask::<u128>(4, 2),
-            0x03030303030303030303030303030303
+            0x0303_0303_0303_0303_0303_0303_0303_0303
         );
         assert_eq!(
             interleave_mask::<u128>(4, 1),
-            0x11111111111111111111111111111111
+            0x1111_1111_1111_1111_1111_1111_1111_1111
         );
     }
 
     #[test]
-    fn truncated_mask() {
-        assert_eq!(interleave_mask::<u32>(2, 32), 0xFFFFFFFF);
-        assert_eq!(interleave_mask::<u32>(2, 16), 0x0000FFFF);
-        assert_eq!(interleave_mask::<u32>(2, 8), 0x00FF00FF);
-        assert_eq!(interleave_mask::<u32>(2, 4), 0x0F0F0F0F);
-        assert_eq!(interleave_mask::<u32>(2, 2), 0x33333333);
-        assert_eq!(interleave_mask::<u32>(2, 1), 0x55555555);
+    fn truncated_interleave_mask() {
+        assert_eq!(interleave_mask::<u32>(2, 32), 0xFFFF_FFFF);
+        assert_eq!(interleave_mask::<u32>(2, 16), 0x0000_FFFF);
+        assert_eq!(interleave_mask::<u32>(2, 8), 0x00FF_00FF);
+        assert_eq!(interleave_mask::<u32>(2, 4), 0x0F0F_0F0F);
+        assert_eq!(interleave_mask::<u32>(2, 2), 0x3333_3333);
+        assert_eq!(interleave_mask::<u32>(2, 1), 0x5555_5555);
     }
 }
