@@ -18,7 +18,7 @@ const MASK_1_DIM_4: u128 = 0x03030303030303030303030303030303;
 const MASK_0_DIM_4: u128 = 0x11111111111111111111111111111111;
 
 pub trait Mask<const N: usize> {
-    type Output: num_traits::PrimInt;
+    type Output: num_traits::PrimInt + BitCount;
 
     const MASK_5: Self::Output;
     const MASK_4: Self::Output;
@@ -182,9 +182,9 @@ where
         // SAFETY: casts between unsigned integers always succeed.
         let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<2, N>())) & <u8 as Mask<N>>::MASK_2;
-        x = (x | (x << interleave_shift::<1, N>())) & <u8 as Mask<N>>::MASK_1;
-        x = (x | (x << interleave_shift::<0, N>())) & <u8 as Mask<N>>::MASK_0;
+        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
+        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
+        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
 
         x
     }
@@ -201,10 +201,10 @@ where
         // SAFETY: casts between unsigned integers always succeed.
         let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<3, N>())) & <u16 as Mask<N>>::MASK_3;
-        x = (x | (x << interleave_shift::<2, N>())) & <u16 as Mask<N>>::MASK_2;
-        x = (x | (x << interleave_shift::<1, N>())) & <u16 as Mask<N>>::MASK_1;
-        x = (x | (x << interleave_shift::<0, N>())) & <u16 as Mask<N>>::MASK_0;
+        x = (x | (x << interleave_shift::<3, N>())) & interleave_mask(N as u32, 1 << 3);
+        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
+        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
+        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
 
         x
     }
@@ -221,11 +221,11 @@ where
         // SAFETY: casts between unsigned integers always succeed.
         let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<4, N>())) & <u32 as Mask<N>>::MASK_4;
-        x = (x | (x << interleave_shift::<3, N>())) & <u32 as Mask<N>>::MASK_3;
-        x = (x | (x << interleave_shift::<2, N>())) & <u32 as Mask<N>>::MASK_2;
-        x = (x | (x << interleave_shift::<1, N>())) & <u32 as Mask<N>>::MASK_1;
-        x = (x | (x << interleave_shift::<0, N>())) & <u32 as Mask<N>>::MASK_0;
+        x = (x | (x << interleave_shift::<4, N>())) & interleave_mask(N as u32, 1 << 4);
+        x = (x | (x << interleave_shift::<3, N>())) & interleave_mask(N as u32, 1 << 3);
+        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
+        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
+        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
 
         x
     }
@@ -242,12 +242,12 @@ where
         // SAFETY: casts between unsigned integers always succeed.
         let mut x = unsafe { num_cast(self) };
 
-        x = (x | (x << interleave_shift::<5, N>())) & <u64 as Mask<N>>::MASK_5;
-        x = (x | (x << interleave_shift::<4, N>())) & <u64 as Mask<N>>::MASK_4;
-        x = (x | (x << interleave_shift::<3, N>())) & <u64 as Mask<N>>::MASK_3;
-        x = (x | (x << interleave_shift::<2, N>())) & <u64 as Mask<N>>::MASK_2;
-        x = (x | (x << interleave_shift::<1, N>())) & <u64 as Mask<N>>::MASK_1;
-        x = (x | (x << interleave_shift::<0, N>())) & <u64 as Mask<N>>::MASK_0;
+        x = (x | (x << interleave_shift::<5, N>())) & interleave_mask(N as u32, 1 << 5);
+        x = (x | (x << interleave_shift::<4, N>())) & interleave_mask(N as u32, 1 << 4);
+        x = (x | (x << interleave_shift::<3, N>())) & interleave_mask(N as u32, 1 << 3);
+        x = (x | (x << interleave_shift::<2, N>())) & interleave_mask(N as u32, 1 << 2);
+        x = (x | (x << interleave_shift::<1, N>())) & interleave_mask(N as u32, 1 << 1);
+        x = (x | (x << interleave_shift::<0, N>())) & interleave_mask(N as u32, 1 << 0);
 
         x
     }
@@ -293,10 +293,12 @@ impl BitCount for u128 {
 }
 
 // Masks with zero bits are not allowed.
+#[inline(always)]
 fn mask<T: num_traits::PrimInt + BitCount>(bits: u32) -> T {
     <T as num_traits::Bounded>::max_value().unsigned_shr(<T as BitCount>::BITS - bits)
 }
 
+#[inline(always)]
 fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
     let mut acc = <T as num_traits::Zero>::zero();
     let mask = mask::<T>(bits);
@@ -312,6 +314,8 @@ fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T 
 }
 
 mod tests {
+    // This is false positive.
+    #[allow(unused_imports)]
     use super::*;
 
     #[test]
