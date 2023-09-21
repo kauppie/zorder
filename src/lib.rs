@@ -69,12 +69,14 @@
 
 #![no_std]
 
+mod deinterleave;
 mod interleave;
 mod mask;
 
 use num_traits::Zero;
 
-pub use crate::interleave::Interleave;
+pub use deinterleave::Deinterleave;
+pub use interleave::Interleave;
 
 #[inline]
 pub fn array_index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
@@ -88,6 +90,14 @@ where
         .fold(<I as Interleave<N>>::Output::zero(), |acc, (i, n)| {
             acc | (n << i)
         })
+}
+
+#[inline]
+pub fn array_coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
+where
+    I: Deinterleave<N> + Copy,
+{
+    core::array::from_fn(|i| index.deinterleave(i))
 }
 
 /// Returns the Z-order curve index of the given 16-bit 2D coordinates.
@@ -162,6 +172,23 @@ pub fn index_of_64_dual_pass((x, y): (u32, u32)) -> u64 {
     let y = single_pass(y as u64);
 
     x | (y << 1)
+}
+
+#[inline]
+pub fn coord_of_dual_pass(idx: u32) -> (u16, u16) {
+    #[inline(always)]
+    fn single_pass(mut x: u32) -> u16 {
+        x = (x | (x >> 1)) & 0x3333_3333;
+        x = (x | (x >> 2)) & 0x0F0F_0F0F;
+        x = (x | (x >> 4)) & 0x00FF_00FF;
+
+        x as u16
+    }
+
+    let x = single_pass(idx & 0x5555_5555);
+    let y = single_pass((idx & 0xAAAA_AAAA) >> 1);
+
+    (x, y)
 }
 
 /// Returns the 2D coordinates of the given 32-bit Z-order curve index.
@@ -402,6 +429,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn array_conversions() {
+        for i in 0..10_000u32 {
+            let array: [_; 2] = array_coord_of(i);
+            assert_eq!(array_index_of(array), i);
+        }
+    }
+
+    #[test]
     fn index_of_and_coord_of() {
         for i in 0..10_000 {
             let xy = coord_of(i);
@@ -418,6 +453,14 @@ mod tests {
 
                 assert_eq!(idx, idx2);
             }
+        }
+    }
+
+    #[test]
+    fn dual_pass_coord_of() {
+        for i in 0..10_000 {
+            let xy = coord_of_dual_pass(i);
+            assert_eq!(index_of(xy), i);
         }
     }
 
