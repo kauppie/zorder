@@ -69,11 +69,12 @@
 
 #![no_std]
 
+mod interleave;
 mod mask;
 
 use num_traits::Zero;
 
-pub use mask::Interleave;
+pub use crate::interleave::Interleave;
 
 #[inline]
 pub fn array_index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
