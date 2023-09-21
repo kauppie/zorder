@@ -37,42 +37,42 @@ pub trait DeinterleaveOutput<const N: usize> {
 }
 
 macro_rules! impl_deinterleave_output {
-  ($($impl_type:ty, $dim:expr => $out_type:ty);*) => {
-      $(
-          impl DeinterleaveOutput<$dim> for $impl_type {
-              type Output = $out_type;
-          }
-      )*
-  };
+    ($($impl_type:ty => $dim:expr, $out_type:ty);*) => {
+        $(
+            impl DeinterleaveOutput<$dim> for $impl_type {
+                type Output = $out_type;
+            }
+        )*
+    };
 }
 
 impl_deinterleave_output! {
-  u16, 2 => u8;
-  u32, 2 => u16;
-  u32, 3 => u8;
-  u32, 4 => u8;
-  u64, 2 => u32;
-  u64, 3 => u16;
-  u64, 4 => u16;
-  u64, 5 => u8;
-  u64, 6 => u8;
-  u64, 7 => u8;
-  u64, 8 => u8;
-  u128, 2 => u64;
-  u128, 3 => u32;
-  u128, 4 => u32;
-  u128, 5 => u16;
-  u128, 6 => u16;
-  u128, 7 => u16;
-  u128, 8 => u16;
-  u128, 9 => u8;
-  u128, 10 => u8;
-  u128, 11 => u8;
-  u128, 12 => u8;
-  u128, 13 => u8;
-  u128, 14 => u8;
-  u128, 15 => u8;
-  u128, 16 => u8
+    u16 => 2, u8;
+    u32 => 2, u16;
+    u32 => 3, u8;
+    u32 => 4, u8;
+    u64 => 2, u32;
+    u64 => 3, u16;
+    u64 => 4, u16;
+    u64 => 5, u8;
+    u64 => 6, u8;
+    u64 => 7, u8;
+    u64 => 8, u8;
+    u128 => 2, u64;
+    u128 => 3, u32;
+    u128 => 4, u32;
+    u128 => 5, u16;
+    u128 => 6, u16;
+    u128 => 7, u16;
+    u128 => 8, u16;
+    u128 => 9, u8;
+    u128 => 10, u8;
+    u128 => 11, u8;
+    u128 => 12, u8;
+    u128 => 13, u8;
+    u128 => 14, u8;
+    u128 => 15, u8;
+    u128 => 16, u8
 }
 
 #[cfg(test)]
