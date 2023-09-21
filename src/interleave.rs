@@ -47,42 +47,42 @@ pub trait InterleaveOutput<const N: usize>: private::Sealed {
 }
 
 macro_rules! impl_interleave_output {
-  ($($impl_type:ty, $dim:expr => $out_type:ty);*) => {
-      $(
-          impl InterleaveOutput<$dim> for $impl_type {
-              type Output = $out_type;
-          }
-      )*
-  };
+    ($($dim:expr, $impl_type:ty => $out_type:ty);*) => {
+        $(
+            impl InterleaveOutput<$dim> for $impl_type {
+                type Output = $out_type;
+            }
+        )*
+    };
 }
 
 impl_interleave_output! {
-  u8, 2 => u16;
-  u8, 3 => u32;
-  u8, 4 => u32;
-  u8, 5 => u64;
-  u8, 6 => u64;
-  u8, 7 => u64;
-  u8, 8 => u64;
-  u8, 9 => u128;
-  u8, 10 => u128;
-  u8, 11 => u128;
-  u8, 12 => u128;
-  u8, 13 => u128;
-  u8, 14 => u128;
-  u8, 15 => u128;
-  u8, 16 => u128;
-  u16, 2 => u32;
-  u16, 3 => u64;
-  u16, 4 => u64;
-  u16, 5 => u128;
-  u16, 6 => u128;
-  u16, 7 => u128;
-  u16, 8 => u128;
-  u32, 2 => u64;
-  u32, 3 => u128;
-  u32, 4 => u128;
-  u64, 2 => u128
+    2, u8 => u16;
+    3, u8 => u32;
+    4, u8 => u32;
+    5, u8 => u64;
+    6, u8 => u64;
+    7, u8 => u64;
+    8, u8 => u64;
+    9, u8 => u128;
+    10, u8 => u128;
+    11, u8 => u128;
+    12, u8 => u128;
+    13, u8 => u128;
+    14, u8 => u128;
+    15, u8 => u128;
+    16, u8 => u128;
+    2, u16 => u32;
+    3, u16 => u64;
+    4, u16 => u64;
+    5, u16 => u128;
+    6, u16 => u128;
+    7, u16 => u128;
+    8, u16 => u128;
+    2, u32 => u64;
+    3, u32 => u128;
+    4, u32 => u128;
+    2, u64 => u128
 }
 
 mod private {
