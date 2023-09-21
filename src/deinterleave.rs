@@ -1,9 +1,6 @@
 use num_traits::PrimInt;
 
-use crate::{
-    interleave::{interleave_mask, interleave_shift},
-    mask::{num_cast, BitCount},
-};
+use crate::mask::{interleave_mask, interleave_shift, num_cast, BitCount};
 
 pub trait Deinterleave<const N: usize> {
     type Output;
@@ -87,7 +84,7 @@ mod tests {
         let x = 64u16.deinterleave(0);
         let y = 64u16.deinterleave(1);
 
-        assert_eq!(x, 64 >> 1);
+        assert_eq!(x, 8);
         assert_eq!(y, 0);
     }
 }
