@@ -87,12 +87,12 @@ impl_interleave_output! {
 
 /// Calculates the shift amount for the given interleave step and dimension.
 #[inline(always)]
-const fn interleave_shift(i: u32, n: u32) -> u32 {
+pub(crate) const fn interleave_shift(i: u32, n: u32) -> u32 {
     (1 << i) * (n - 1)
 }
 
 #[inline(always)]
-fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
+pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
     let mut acc = <T as num_traits::Zero>::zero();
     let mask = mask::<T>(bits);
 
