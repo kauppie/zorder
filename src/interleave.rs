@@ -20,9 +20,9 @@ pub trait Interleave<const N: usize>: private::Sealed {
 
 impl<T, const N: usize> Interleave<N> for T
 where
-    T: DimensionOutput<N> + BitCount + PrimInt,
+    T: InterleaveOutput<N> + BitCount + PrimInt,
 {
-    type Output = <T as DimensionOutput<N>>::Output;
+    type Output = <T as InterleaveOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -42,21 +42,21 @@ where
 
 /// Used to determine the minimum width output type which
 /// fits the given input type `N` (dimensions) number of times.
-pub trait DimensionOutput<const N: usize>: private::Sealed {
+pub trait InterleaveOutput<const N: usize>: private::Sealed {
     type Output: PrimInt + BitCount;
 }
 
-macro_rules! impl_dimension_output {
+macro_rules! impl_interleave_output {
   ($($impl_type:ty, $dim:expr => $out_type:ty);*) => {
       $(
-          impl DimensionOutput<$dim> for $impl_type {
+          impl InterleaveOutput<$dim> for $impl_type {
               type Output = $out_type;
           }
       )*
   };
 }
 
-impl_dimension_output! {
+impl_interleave_output! {
   u8, 2 => u16;
   u8, 3 => u32;
   u8, 4 => u32;
