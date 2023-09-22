@@ -78,6 +78,19 @@ use num_traits::Zero;
 pub use deinterleave::Deinterleave;
 pub use interleave::Interleave;
 
+/// Calculates Z-order curve index for given sequence of coordinates.
+///
+/// Output type will be the smallest unsigned integer type that can hold all
+/// of the given coordinates.
+///
+/// # Examples
+///
+/// ```
+/// # use zorder::array_index_of;
+///
+/// let idx = array_index_of([3u32, 7u32]);
+/// assert_eq!(idx, 0b101_111u64);
+/// ```
 #[inline]
 pub fn array_index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
 where
@@ -85,13 +98,26 @@ where
 {
     array
         .into_iter()
-        .map(Interleave::<N>::interleave)
+        .map(Interleave::interleave)
         .enumerate()
         .fold(<I as Interleave<N>>::Output::zero(), |acc, (i, n)| {
             acc | (n << i)
         })
 }
 
+/// Returns the 2D coordinates of the given Z-order curve index.
+///
+/// Since many different 2D coordinates can be mapped to the same type `I`,
+/// you may need to specify the number of dimensions `N` to disambiguate.
+///
+/// # Examples
+///
+/// ```
+/// # use zorder::array_coord_of;
+///
+/// let coord: [_; 2] = array_coord_of(0b101_111u64);
+/// assert_eq!(coord, [3u32, 7u32]);
+/// ```
 #[inline]
 pub fn array_coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
 where

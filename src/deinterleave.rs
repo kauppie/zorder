@@ -44,6 +44,10 @@ where
     }
 }
 
+/// Used to determine the minimum width output type which fits
+/// all dimensions `N` stored in the input type.
+///
+/// Inverse conversion of [`InterleaveOutput`](crate::interleave::InterleaveOutput).
 pub trait DeinterleaveOutput<const N: usize>: private::Sealed {
     type Output: BitCount + PrimInt;
 }
