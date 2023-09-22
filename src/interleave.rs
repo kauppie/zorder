@@ -46,7 +46,7 @@ where
 /// Used to determine the minimum width output type which
 /// fits the given input type `N` (dimensions) number of times.
 pub trait InterleaveOutput<const N: usize>: private::Sealed {
-    type Output: PrimInt + BitCount;
+    type Output: BitCount + PrimInt;
 }
 
 macro_rules! impl_interleave_output {

@@ -25,7 +25,7 @@ impl<T, const N: usize> Deinterleave<N> for T
 where
     T: DeinterleaveOutput<N>,
     T: AsPrimitive<<Self as DeinterleaveOutput<N>>::Output>,
-    T: PrimInt + BitCount,
+    T: BitCount + PrimInt,
 {
     type Output = <Self as DeinterleaveOutput<N>>::Output;
 
@@ -45,7 +45,7 @@ where
 }
 
 pub trait DeinterleaveOutput<const N: usize>: private::Sealed {
-    type Output: PrimInt + BitCount;
+    type Output: BitCount + PrimInt;
 }
 
 macro_rules! impl_deinterleave_output {
