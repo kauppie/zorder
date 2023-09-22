@@ -184,7 +184,7 @@ pub fn index_of_64((x, y): (u32, u32)) -> u64 {
 
 #[inline]
 pub fn index_of_64_dual_pass((x, y): (u32, u32)) -> u64 {
-    #[inline(always)]
+    #[inline]
     fn single_pass(mut val: u64) -> u64 {
         val = (val | (val << 8)) & 0x00FF00FF00FF00FF;
         val = (val | (val << 4)) & 0x0F0F0F0F0F0F0F0F;
@@ -202,7 +202,7 @@ pub fn index_of_64_dual_pass((x, y): (u32, u32)) -> u64 {
 
 #[inline]
 pub fn coord_of_dual_pass(idx: u32) -> (u16, u16) {
-    #[inline(always)]
+    #[inline]
     fn single_pass(mut x: u32) -> u16 {
         x = (x | (x >> 1)) & 0x3333_3333;
         x = (x | (x >> 2)) & 0x0F0F_0F0F;

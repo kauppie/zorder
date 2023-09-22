@@ -28,7 +28,7 @@ where
 {
     type Output = <Self as InterleaveOutput<N>>::Output;
 
-    #[inline(always)]
+    #[inline]
     fn interleave(self) -> Self::Output {
         let mut x = self.as_();
 
