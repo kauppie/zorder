@@ -23,7 +23,7 @@ impl_bit_count! {
 }
 
 /// Calculates the shift amount for the given interleave step and dimension.
-#[inline(always)]
+#[inline]
 pub(crate) const fn interleave_shift(i: u32, n: u32) -> u32 {
     (1 << i) * (n - 1)
 }
@@ -38,7 +38,6 @@ pub(crate) const fn interleave_shift(i: u32, n: u32) -> u32 {
 /// # Panics
 ///
 /// Panic behavior is the same as [`bit_mask`] for the `bits` parameter.
-#[inline(always)]
 pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
     let mut acc = <T as num_traits::Zero>::zero();
     let mask = bit_mask::<T>(bits);
@@ -58,7 +57,7 @@ pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits:
 /// # TODO
 ///
 /// Replace with `core::num::div_ceil` when it becomes stable.
-#[inline(always)]
+#[inline]
 const fn div_ceil(a: u32, b: u32) -> u32 {
     (a + b - 1) / b
 }
@@ -71,7 +70,7 @@ const fn div_ceil(a: u32, b: u32) -> u32 {
 ///
 /// - `bits` == 0
 /// - `bits` > `T::BITS`.
-#[inline(always)]
+#[inline]
 pub(crate) fn bit_mask<T: num_traits::PrimInt + BitCount>(bits: u32) -> T {
     <T as num_traits::Bounded>::max_value().unsigned_shr(<T as BitCount>::BITS - bits)
 }

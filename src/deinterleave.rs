@@ -29,7 +29,7 @@ where
 {
     type Output = <Self as DeinterleaveOutput<N>>::Output;
 
-    #[inline(always)]
+    #[inline]
     fn deinterleave(self, lsb: usize) -> <Self as Deinterleave<N>>::Output {
         let mut x = (self >> lsb) & interleave_mask(N as u32, 1);
 
