@@ -5,16 +5,18 @@ use crate::mask::{interleave_mask, interleave_shift, num_cast, BitCount};
 /// Interleaves the bits of the given number, while taking output dimension
 /// into account.
 ///
-/// Naive implementation of this algorithm would be O(n) where n is the
+/// Naive implementation of this algorithm would be O(n) where `n` is the
 /// number of bits in the number. Implementations seen here are O(log n).
 /// They are extrapolated and generalized from the algorithm described here:
 /// http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN.
 pub trait Interleave<const N: usize>: private::Sealed {
     type Output: PrimInt;
 
-    // NOTE: This is a workaround to not need type conversions in runtime code.
-    const N_U32: u32 = N as u32;
-
+    /// Interleaves the bits of the given number.
+    ///
+    /// Dimension `N` determines the number of unused bits between the
+    /// used bits, so that all numbers can be interleaved without
+    /// overlapping.
     fn interleave(self) -> Self::Output;
 }
 
@@ -22,7 +24,7 @@ impl<T, const N: usize> Interleave<N> for T
 where
     T: InterleaveOutput<N> + BitCount + PrimInt,
 {
-    type Output = <T as InterleaveOutput<N>>::Output;
+    type Output = <Self as InterleaveOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
@@ -30,8 +32,8 @@ where
         let mut x: Self::Output = unsafe { num_cast(self) };
 
         for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
-            let mask = interleave_mask(Self::N_U32, 1 << i);
-            let shift_count = interleave_shift(i, Self::N_U32);
+            let mask = interleave_mask(N as u32, 1 << i);
+            let shift_count = interleave_shift(i, N as u32);
 
             x = (x | x.unsigned_shl(shift_count)) & mask;
         }

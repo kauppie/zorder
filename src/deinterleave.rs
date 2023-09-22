@@ -2,13 +2,23 @@ use num_traits::PrimInt;
 
 use crate::mask::{interleave_mask, interleave_shift, num_cast, BitCount};
 
-pub trait Deinterleave<const N: usize> {
+/// Deinterleave a single number from a set of interleaved numbers.
+///
+// Original idea from:
+/// https://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton
+///
+/// Current implementation is rather based on the [Interleave](crate::interleave::Interleave) trait
+/// and its implementation.
+pub trait Deinterleave<const N: usize>: private::Sealed {
     type Output;
 
-    // NOTE: This is a workaround to not need type conversions in runtime code.
-    const N_U32: u32 = N as u32;
-
-    fn deinterleave(self, shift: usize) -> Self::Output;
+    /// Deinterleaves a number from a set of interleaved numbers starting from
+    /// the given least significant bit `lsb` position.
+    ///
+    /// For `lsb` == 0, the actual LSB of the number is used is the first
+    /// interleaved bit. Dimension `N` is used to determine the number of
+    /// bits there are between output's bits.
+    fn deinterleave(self, lsb: usize) -> Self::Output;
 }
 
 impl<T, const N: usize> Deinterleave<N> for T
@@ -17,12 +27,13 @@ where
 {
     type Output = <Self as DeinterleaveOutput<N>>::Output;
 
-    fn deinterleave(self, shift: usize) -> <Self as Deinterleave<N>>::Output {
-        let mut x = (self >> shift) & interleave_mask(Self::N_U32, 1);
+    #[inline(always)]
+    fn deinterleave(self, lsb: usize) -> <Self as Deinterleave<N>>::Output {
+        let mut x = (self >> lsb) & interleave_mask(N as u32, 1);
 
         for i in 0..<Self::Output as BitCount>::BITS_ILOG2 {
-            let mask = interleave_mask(Self::N_U32, 1 << (i + 1));
-            let shift_count = interleave_shift(i, Self::N_U32);
+            let mask = interleave_mask(N as u32, 1 << (i + 1));
+            let shift_count = interleave_shift(i, N as u32);
 
             x = (x | x.unsigned_shr(shift_count)) & mask;
         }
@@ -32,7 +43,7 @@ where
     }
 }
 
-pub trait DeinterleaveOutput<const N: usize> {
+pub trait DeinterleaveOutput<const N: usize>: private::Sealed {
     type Output: PrimInt + BitCount;
 }
 
@@ -73,6 +84,15 @@ impl_deinterleave_output! {
     u128 => 14, u8;
     u128 => 15, u8;
     u128 => 16, u8
+}
+
+mod private {
+    pub trait Sealed {}
+
+    impl Sealed for u16 {}
+    impl Sealed for u32 {}
+    impl Sealed for u64 {}
+    impl Sealed for u128 {}
 }
 
 #[cfg(test)]
