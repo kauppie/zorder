@@ -105,11 +105,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn deinterleave() {
-        let x = 64u16.deinterleave(0);
-        let y = 64u16.deinterleave(1);
+    fn deinterleave_dim2_u8() {
+        let x = <u16 as Deinterleave<2>>::deinterleave(2u16, 0);
+        let y = <u16 as Deinterleave<2>>::deinterleave(2u16, 1);
 
-        assert_eq!(x, 8);
-        assert_eq!(y, 0);
+        assert_eq!(x, 0);
+        assert_eq!(y, 1);
+    }
+
+    #[test]
+    fn deinterleave_dim3_u8() {
+        let x = <u32 as Deinterleave<3>>::deinterleave(2u32, 0);
+        let y = <u32 as Deinterleave<3>>::deinterleave(2u32, 1);
+        let z = <u32 as Deinterleave<3>>::deinterleave(2u32, 2);
+
+        assert_eq!(x, 0);
+        assert_eq!(y, 1);
+        assert_eq!(z, 0);
+    }
+
+    #[test]
+    fn deinterleave_dim4_u8() {
+        let x = <u32 as Deinterleave<4>>::deinterleave(2u32, 0);
+        let y = <u32 as Deinterleave<4>>::deinterleave(2u32, 1);
+        let z = <u32 as Deinterleave<4>>::deinterleave(2u32, 2);
+        let w = <u32 as Deinterleave<4>>::deinterleave(2u32, 3);
+
+        assert_eq!(x, 0);
+        assert_eq!(y, 1);
+        assert_eq!(z, 0);
+        assert_eq!(w, 0);
     }
 }

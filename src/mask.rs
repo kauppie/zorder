@@ -76,9 +76,8 @@ pub(crate) fn bit_mask<T: num_traits::PrimInt + BitCount>(bits: u32) -> T {
     <T as num_traits::Bounded>::max_value().unsigned_shr(<T as BitCount>::BITS - bits)
 }
 
+#[cfg(test)]
 mod tests {
-    // This is false positive.
-    #[allow(unused_imports)]
     use super::*;
 
     #[test]
@@ -130,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn dim2() {
+    fn interleave_mask_dim2() {
         assert_eq!(
             interleave_mask::<u128>(2, 32),
             0x0000_0000_FFFF_FFFF_00000000_FFFF_FFFF
@@ -158,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    fn dim3() {
+    fn interleave_mask_dim3() {
         assert_eq!(
             interleave_mask::<u128>(3, 16),
             0x0000_FFFF_0000_0000_FFFF_0000_0000_FFFF
@@ -182,7 +181,7 @@ mod tests {
     }
 
     #[test]
-    fn dim4() {
+    fn interleave_mask_dim4() {
         assert_eq!(
             interleave_mask::<u128>(4, 16),
             0x0000_0000_0000_FFFF_0000_0000_0000_FFFF
@@ -213,5 +212,13 @@ mod tests {
         assert_eq!(interleave_mask::<u32>(2, 4), 0x0F0F_0F0F);
         assert_eq!(interleave_mask::<u32>(2, 2), 0x3333_3333);
         assert_eq!(interleave_mask::<u32>(2, 1), 0x5555_5555);
+    }
+
+    #[test]
+    fn odd_dimension_mask() {
+        assert_eq!(
+            interleave_mask::<u32>(13, 1),
+            0b1_0000_0000_0000_1_0000_0000_0000_1
+        )
     }
 }

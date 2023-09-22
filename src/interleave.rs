@@ -96,3 +96,38 @@ mod private {
     impl Sealed for u32 {}
     impl Sealed for u64 {}
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn interleave_dim2_u8() {
+        let idx = <u8 as Interleave<2>>::interleave(u8::MAX);
+        assert_eq!(idx, 0b01_01_01_01_01_01_01_01);
+    }
+
+    #[test]
+    fn interleave_dim3_u8() {
+        let idx = <u8 as Interleave<3>>::interleave(u8::MAX);
+        assert_eq!(idx, 0b001_001_001_001_001_001_001_001);
+    }
+
+    #[test]
+    fn interleave_dim4_u8() {
+        let idx = <u8 as Interleave<4>>::interleave(u8::MAX);
+        assert_eq!(idx, 0b0001_0001_0001_0001_0001_0001_0001_0001);
+    }
+
+    #[test]
+    fn interleave_dim4_u8_half() {
+        let idx = <u8 as Interleave<4>>::interleave(0xF0);
+        assert_eq!(idx, 0b0001_0001_0001_0001_0000_0000_0000_0000);
+    }
+
+    #[test]
+    fn interleave_dim2_u64() {
+        let idx = <u64 as Interleave<2>>::interleave(u64::MAX);
+        assert_eq!(idx, 0x5555_5555_5555_5555_5555_5555_5555_5555);
+    }
+}
