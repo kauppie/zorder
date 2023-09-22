@@ -130,4 +130,10 @@ mod tests {
         let idx = <u64 as Interleave<2>>::interleave(u64::MAX);
         assert_eq!(idx, 0x5555_5555_5555_5555_5555_5555_5555_5555);
     }
+
+    #[test]
+    fn odd_large_dimension_interleave() {
+        let idx = <u8 as Interleave<13>>::interleave(u8::MAX);
+        assert_eq!(idx, 0x0000_0000_0800_4002_0010_0080_0400_2001);
+    }
 }

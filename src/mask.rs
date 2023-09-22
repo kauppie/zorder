@@ -215,7 +215,7 @@ mod tests {
     }
 
     #[test]
-    fn odd_dimension_mask() {
+    fn odd_large_dimension_mask() {
         assert_eq!(
             interleave_mask::<u32>(13, 1),
             0b1_0000_0000_0000_1_0000_0000_0000_1

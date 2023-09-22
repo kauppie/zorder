@@ -136,4 +136,22 @@ mod tests {
         assert_eq!(z, 0);
         assert_eq!(w, 0);
     }
+
+    #[test]
+    fn deinterleave_dim2_u64() {
+        let x =
+            <u128 as Deinterleave<2>>::deinterleave(0x5555_5555_5555_5555_5555_5555_5555_5555, 0);
+        let y =
+            <u128 as Deinterleave<2>>::deinterleave(0x5555_5555_5555_5555_5555_5555_5555_5555, 1);
+
+        assert_eq!(x, u64::MAX);
+        assert_eq!(y, 0);
+    }
+
+    #[test]
+    fn odd_large_dimension_interleave() {
+        let idx =
+            <u128 as Deinterleave<13>>::deinterleave(0x0000_0000_0800_4002_0010_0080_0400_2001, 0);
+        assert_eq!(idx, u8::MAX);
+    }
 }
