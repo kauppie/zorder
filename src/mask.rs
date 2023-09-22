@@ -63,16 +63,6 @@ const fn div_ceil(a: u32, b: u32) -> u32 {
     (a + b - 1) / b
 }
 
-/// Casts numeric types without checking for success.
-#[inline(always)]
-pub(crate) unsafe fn num_cast<I, O>(input: I) -> O
-where
-    I: num_traits::ToPrimitive,
-    O: num_traits::NumCast,
-{
-    <O as num_traits::NumCast>::from(input).unwrap_unchecked()
-}
-
 /// Set the `n` least significant bits of given type.
 ///
 /// # Panics
