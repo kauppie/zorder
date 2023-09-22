@@ -1,6 +1,6 @@
-use num_traits::PrimInt;
+use num_traits::{cast::AsPrimitive, PrimInt};
 
-use crate::mask::{interleave_mask, interleave_shift, num_cast, BitCount};
+use crate::mask::{interleave_mask, interleave_shift, BitCount};
 
 /// Interleaves the bits of the given number, while taking output dimension
 /// into account.
@@ -22,14 +22,15 @@ pub trait Interleave<const N: usize>: private::Sealed {
 
 impl<T, const N: usize> Interleave<N> for T
 where
-    T: InterleaveOutput<N> + BitCount + PrimInt,
+    T: InterleaveOutput<N>,
+    T: AsPrimitive<<Self as InterleaveOutput<N>>::Output>,
+    T: BitCount + PrimInt,
 {
     type Output = <Self as InterleaveOutput<N>>::Output;
 
     #[inline(always)]
     fn interleave(self) -> Self::Output {
-        // SAFETY: casts between unsigned integers always succeed.
-        let mut x: Self::Output = unsafe { num_cast(self) };
+        let mut x = self.as_();
 
         for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
             let mask = interleave_mask(N as u32, 1 << i);

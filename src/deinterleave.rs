@@ -1,6 +1,6 @@
-use num_traits::PrimInt;
+use num_traits::{cast::AsPrimitive, PrimInt};
 
-use crate::mask::{interleave_mask, interleave_shift, num_cast, BitCount};
+use crate::mask::{interleave_mask, interleave_shift, BitCount};
 
 /// Deinterleave a single number from a set of interleaved numbers.
 ///
@@ -23,7 +23,9 @@ pub trait Deinterleave<const N: usize>: private::Sealed {
 
 impl<T, const N: usize> Deinterleave<N> for T
 where
-    T: DeinterleaveOutput<N> + PrimInt + BitCount,
+    T: DeinterleaveOutput<N>,
+    T: AsPrimitive<<Self as DeinterleaveOutput<N>>::Output>,
+    T: PrimInt + BitCount,
 {
     type Output = <Self as DeinterleaveOutput<N>>::Output;
 
@@ -38,8 +40,7 @@ where
             x = (x | x.unsigned_shr(shift_count)) & mask;
         }
 
-        // SAFETY: casts between unsigned integers always succeed.
-        unsafe { num_cast(x) }
+        x.as_()
     }
 }
 
