@@ -6,6 +6,7 @@ pub trait BitCount {
     const BITS_ILOG2: u32 = Self::BITS.trailing_zeros();
 }
 
+/// Used to implement [`BitCount`] for many types.
 macro_rules! impl_bit_count {
     ($($t:ty),*) => {
         $(
@@ -16,6 +17,7 @@ macro_rules! impl_bit_count {
     };
 }
 
+// Implement [`BitCount`] for all unsigned integer types.
 impl_bit_count! {
     u8, u16, u32, u64, u128
 }
@@ -26,7 +28,7 @@ pub(crate) const fn interleave_shift(i: u32, n: u32) -> u32 {
     (1 << i) * (n - 1)
 }
 
-/// Calculates the mask for the given dimension and number of bits.
+/// Calculates the mask for one step in interleaving and deinterleaving bits of a number.
 ///
 /// `bits` determines the number of consecutive set bits, before consecutive unset bits.
 /// `dim` determines the number of times the pattern of unset bits repeats.
@@ -36,18 +38,29 @@ pub(crate) const fn interleave_shift(i: u32, n: u32) -> u32 {
 /// # Panics
 ///
 /// Panic behavior is the same as [`bit_mask`] for the `bits` parameter.
+#[inline(always)]
 pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
     let mut acc = <T as num_traits::Zero>::zero();
     let mask = bit_mask::<T>(bits);
 
-    let ceil_div_dim = (<T as BitCount>::BITS + dim - 1) / dim;
-    let ceil_div_bits = (ceil_div_dim + bits - 1) / bits;
+    let ceil_div_dim = div_ceil(<T as BitCount>::BITS, dim);
+    let ceil_div_bits = div_ceil(ceil_div_dim, bits);
 
     for i in 0..ceil_div_bits {
         acc = acc | mask.unsigned_shl(i * dim * bits);
     }
 
     acc
+}
+
+/// Do a ceiling division.
+///
+/// # TODO
+///
+/// Replace with `core::num::div_ceil` when it becomes stable.
+#[inline(always)]
+const fn div_ceil(a: u32, b: u32) -> u32 {
+    (a + b - 1) / b
 }
 
 /// Casts numeric types without checking for success.
@@ -77,6 +90,15 @@ mod tests {
     // This is false positive.
     #[allow(unused_imports)]
     use super::*;
+
+    #[test]
+    fn ceiling_division() {
+        assert_eq!(div_ceil(8, 2), 4);
+        assert_eq!(div_ceil(7, 2), 4);
+        assert_eq!(div_ceil(6, 2), 3);
+        assert_eq!(div_ceil(1, 1), 1);
+        assert_eq!(div_ceil(0, 1), 0);
+    }
 
     #[test]
     fn allowed_masks() {
