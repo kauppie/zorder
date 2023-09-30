@@ -100,9 +100,10 @@ where
         .into_iter()
         .map(Interleave::interleave)
         .enumerate()
-        .fold(<I as Interleave<N>>::Output::zero(), |acc, (i, n)| {
-            acc | (n << i)
-        })
+        .fold(
+            <I as Interleave<N>>::Output::zero(),
+            |acc, (i, interleaved)| acc | (interleaved << i),
+        )
 }
 
 /// Returns the 2D coordinates of the given Z-order curve index.
