@@ -18,11 +18,11 @@
 //! ```
 //! use zorder::{index_of, coord_of};
 //!
-//! let idx = index_of((1, 1));
-//! assert_eq!(idx, 3);
+//! let idx = index_of([1u16, 1u16]);
+//! assert_eq!(idx, 3u32);
 //!
 //! let coord = coord_of(idx);
-//! assert_eq!(coord, (1, 1));
+//! assert_eq!(coord, [1u16, 1u16]);
 //! ```
 //!
 //! Basic usage with bmi2 implementation:
@@ -45,13 +45,13 @@
 //! There exists also functions for wider 64-bit indices with '_64' postfix:
 //!
 //! ```
-//! use zorder::{index_of_64, coord_of_64};
+//! use zorder::{index_of, coord_of};
 //!
-//! let idx = index_of_64((1, 1));
-//! assert_eq!(idx, 3);
+//! let idx = index_of([1u32, 1u32]);
+//! assert_eq!(idx, 3u64);
 //!
-//! let coord = coord_of_64(idx);
-//! assert_eq!(coord, (1, 1));
+//! let coord = coord_of(idx);
+//! assert_eq!(coord, [1u32, 1u32]);
 //!
 //! #[cfg(target_arch = "x86_64")]
 //! {
@@ -86,13 +86,13 @@ pub use interleave::Interleave;
 /// # Examples
 ///
 /// ```
-/// # use zorder::array_index_of;
+/// # use zorder::index_of;
 ///
-/// let idx = array_index_of([3u32, 7u32]);
+/// let idx = index_of([3u32, 7u32]);
 /// assert_eq!(idx, 0b101_111u64);
 /// ```
 #[inline]
-pub fn array_index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
+pub fn index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
 where
     I: Interleave<N>,
 {
@@ -113,13 +113,13 @@ where
 /// # Examples
 ///
 /// ```
-/// # use zorder::array_coord_of;
+/// # use zorder::coord_of;
 ///
-/// let coord: [_; 2] = array_coord_of(0b101_111u64);
+/// let coord = coord_of(0b101_111u64);
 /// assert_eq!(coord, [3u32, 7u32]);
 /// ```
 #[inline]
-pub fn array_coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
+pub fn coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
 where
     I: Deinterleave<N> + Copy,
 {
@@ -308,14 +308,14 @@ mod tests {
     #[test]
     fn array_conversions() {
         for i in 0..10_000u32 {
-            let array: [_; 2] = array_coord_of(i);
-            assert_eq!(array_index_of(array), i);
+            let array: [_; 2] = coord_of(i);
+            assert_eq!(index_of(array), i);
         }
     }
 
     #[test]
     fn interleave() {
-        let x = array_index_of([7u32, 7u32]);
+        let x = index_of([7u32, 7u32]);
         assert_eq!(x, 0b111111);
     }
 }
