@@ -115,7 +115,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn too_large_mask() {
-        bit_mask::<u8>(u8::MAX as u32 + 1);
+        bit_mask::<u8>(u8::BITS + 1);
     }
 
     #[test]
