@@ -42,24 +42,14 @@ pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits:
     let mut acc = <T as num_traits::Zero>::zero();
     let mask = bit_mask::<T>(bits);
 
-    let ceil_div_dim = div_ceil(<T as BitCount>::BITS, dim);
-    let ceil_div_bits = div_ceil(ceil_div_dim, bits);
+    let ceil_div_dim = <T as BitCount>::BITS.div_ceil(dim);
+    let ceil_div_bits = ceil_div_dim.div_ceil(bits);
 
     for i in 0..ceil_div_bits {
         acc = acc | mask.unsigned_shl(i * dim * bits);
     }
 
     acc
-}
-
-/// Do a ceiling division.
-///
-/// # TODO
-///
-/// Replace with `core::num::div_ceil` when it becomes stable.
-#[inline]
-const fn div_ceil(a: u32, b: u32) -> u32 {
-    (a + b - 1) / b
 }
 
 /// Set the `n` least significant bits of given type.
@@ -78,15 +68,6 @@ pub(crate) fn bit_mask<T: num_traits::PrimInt + BitCount>(bits: u32) -> T {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn ceiling_division() {
-        assert_eq!(div_ceil(8, 2), 4);
-        assert_eq!(div_ceil(7, 2), 4);
-        assert_eq!(div_ceil(6, 2), 3);
-        assert_eq!(div_ceil(1, 1), 1);
-        assert_eq!(div_ceil(0, 1), 0);
-    }
 
     #[test]
     fn allowed_masks() {
