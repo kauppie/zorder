@@ -34,7 +34,7 @@ where
 
         for i in (0..<Self as BitCount>::BITS_ILOG2).rev() {
             let mask = interleave_mask(N as u32, 1 << i);
-            let shift_count = interleave_shift(i, N as u32);
+            let shift_count = interleave_shift(N as u32, i);
 
             x = (x | x.unsigned_shl(shift_count)) & mask;
         }
