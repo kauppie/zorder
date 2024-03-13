@@ -89,16 +89,16 @@ impl_interleave_output! {
     2, u64 => u128
 }
 
-pub trait InterleaveSIMD<const N: usize>: Interleave<N> {
-    fn interleave_simd(self) -> <Self as Interleave<N>>::Output;
+pub trait InterleaveBMI2<const N: usize>: Interleave<N> {
+    fn interleave_bmi2(self) -> <Self as Interleave<N>>::Output;
 }
 
-macro_rules! impl_interleave_simd_32 {
+macro_rules! impl_interleave_bmi2_32 {
     ($($dim:expr, $impl_type:ty);*) => {
         $(
-            impl InterleaveSIMD<$dim> for $impl_type {
+            impl InterleaveBMI2<$dim> for $impl_type {
                 #[inline]
-                fn interleave_simd(self) -> <Self as Interleave<$dim>>::Output {
+                fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
                     unsafe {
                         core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1))
                             as <Self as Interleave<$dim>>::Output
@@ -109,12 +109,12 @@ macro_rules! impl_interleave_simd_32 {
     };
 }
 
-macro_rules! impl_interleave_simd_64 {
+macro_rules! impl_interleave_bmi2_64 {
     ($($dim:expr, $impl_type:ty);*) => {
         $(
-            impl InterleaveSIMD<$dim> for $impl_type {
+            impl InterleaveBMI2<$dim> for $impl_type {
                 #[inline]
-                fn interleave_simd(self) -> <Self as Interleave<$dim>>::Output {
+                fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
                     unsafe {
                         core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1))
                             as <Self as Interleave<$dim>>::Output
@@ -125,14 +125,14 @@ macro_rules! impl_interleave_simd_64 {
     };
 }
 
-impl_interleave_simd_32! {
+impl_interleave_bmi2_32! {
     2, u8;
     3, u8;
     4, u8;
     2, u16
 }
 
-impl_interleave_simd_64! {
+impl_interleave_bmi2_64! {
     5, u8;
     6, u8;
     7, u8;
