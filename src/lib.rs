@@ -88,12 +88,14 @@ pub fn coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output;
 where
     I: Deinterleave<N> + Copy,
 {
-    core::array::from_fn(|i| index.deinterleave(i))
+    util::generic_coord_of(index, Deinterleave::deinterleave)
 }
 
 #[cfg(target_arch = "x86_64")]
 pub mod bmi2 {
-    use crate::{interleave::InterleaveBMI2, util, Interleave};
+    use crate::{
+        deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2, util, Deinterleave, Interleave,
+    };
 
     /// Calculates Z-order curve index for given sequence of coordinates.
     ///
@@ -138,7 +140,10 @@ pub mod bmi2 {
         util::generic_index_of(array, InterleaveBMI2::interleave_bmi2)
     }
 
-    /// Returns the 2D coordinates of the given 32-bit Z-order curve index.
+    /// Returns the 2D coordinates of the given Z-order curve index.
+    ///
+    /// Since many different 2D coordinates can be mapped to the same type `I`,
+    /// you may need to specify the number of dimensions `N` to disambiguate.
     ///
     /// This function requires the bmi2 instruction set, but it can be
     /// faster than the software implementation.
@@ -160,88 +165,52 @@ pub mod bmi2 {
     /// # Examples
     ///
     /// ```
-    /// use zorder::bmi2::coord_of;
-    ///
+    /// # use zorder::bmi2::coord_of;
     /// #[cfg(target_arch = "x86_64")]
     /// {
     ///     if is_x86_feature_detected!("bmi2") {
-    ///         let coord = unsafe { coord_of(3) };
-    ///         assert_eq!(coord, (1, 1));
+    ///         let coord = coord_of(0b101_111u64);
+    ///         assert_eq!(coord, [3u32, 7u32]);
     ///     }
     /// }
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
-    pub unsafe fn coord_of(idx: u32) -> (u16, u16) {
-        use core::arch::x86_64::_pext_u32;
-
-        let x = _pext_u32(idx, 0x55555555);
-        let y = _pext_u32(idx, 0xAAAAAAAA);
-        (x as u16, y as u16)
-    }
-
-    /// Returns the 2D coordinates of the given 64-bit Z-order curve index.
-    ///
-    /// This function operates on wider indices than [`bmi2::coord_of`](crate::bmi2::coord_of).
-    ///
-    /// This function requires the bmi2 instruction set, but it can be
-    /// faster than the software implementation.
-    ///
-    /// # Safety
-    ///
-    /// This function is safe to call only if the `bmi2` x86_64 feature is
-    /// supported by the CPU. This can be checked at runtime:
-    ///
-    /// ```
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         // ...
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use zorder::bmi2::coord_of_64;
-    ///
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         let coord = unsafe { coord_of_64(3) };
-    ///         assert_eq!(coord, (1, 1));
-    ///     }
-    /// }
-    /// ```
-    #[inline]
-    #[target_feature(enable = "bmi2")]
-    pub unsafe fn coord_of_64(idx: u64) -> (u32, u32) {
-        use core::arch::x86_64::_pext_u64;
-
-        let x = _pext_u64(idx, 0x5555555555555555);
-        let y = _pext_u64(idx, 0xAAAAAAAAAAAAAAAA);
-        (x as u32, y as u32)
+    pub unsafe fn coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
+    where
+        I: DeinterleaveBMI2<N> + Copy,
+    {
+        util::generic_coord_of(index, DeinterleaveBMI2::deinterleave_bmi2)
     }
 }
 
 mod util {
-    use crate::Interleave;
+    use crate::{Deinterleave, Interleave};
     use num_traits::Zero;
 
     #[inline]
-    pub(super) fn generic_index_of<I, F, const N: usize>(
+    pub(super) fn generic_index_of<I, const N: usize>(
         array: [I; N],
-        interleave: F,
+        interleave: impl Fn(I) -> <I as Interleave<N>>::Output,
     ) -> <I as Interleave<N>>::Output
     where
         I: Interleave<N>,
-        F: Fn(I) -> <I as Interleave<N>>::Output,
     {
         array.into_iter().map(interleave).enumerate().fold(
             <I as Interleave<N>>::Output::zero(),
             |acc, (i, interleaved)| acc | (interleaved << i),
         )
+    }
+
+    #[inline]
+    pub(super) fn generic_coord_of<I, const N: usize>(
+        index: I,
+        deinterleave: impl Fn(I, usize) -> <I as Deinterleave<N>>::Output,
+    ) -> [<I as Deinterleave<N>>::Output; N]
+    where
+        I: Deinterleave<N> + Copy,
+    {
+        core::array::from_fn(|i| deinterleave(index, i))
     }
 }
 
