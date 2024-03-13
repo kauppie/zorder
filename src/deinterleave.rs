@@ -85,6 +85,59 @@ impl_deinterleave_output! {
     u128 => 16, u8
 }
 
+pub trait DeinterleaveBMI2<const N: usize>: Deinterleave<N> {
+    fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<N>>::Output;
+}
+
+macro_rules! impl_deinterleave_bmi2_32 {
+    ($($impl_type:ty => $dim:expr);*) => {
+        $(
+            impl DeinterleaveBMI2<$dim> for $impl_type {
+                #[inline]
+                fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
+                    let mask = interleave_mask::<u32>($dim, 1) << lsb;
+                    unsafe {
+                        core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
+                    }
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_deinterleave_bmi2_64 {
+    ($($impl_type:ty => $dim:expr);*) => {
+        $(
+            impl DeinterleaveBMI2<$dim> for $impl_type {
+                #[inline]
+                fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
+                    let mask = interleave_mask::<u64>($dim, 1) << lsb;
+                    unsafe {
+                        core::arch::x86_64::_pext_u64(self.as_(), mask).as_()
+                    }
+                }
+            }
+        )*
+    };
+}
+
+impl_deinterleave_bmi2_32! {
+    u16 => 2;
+    u32 => 2;
+    u32 => 3;
+    u32 => 4
+}
+
+impl_deinterleave_bmi2_64! {
+    u64 => 2;
+    u64 => 3;
+    u64 => 4;
+    u64 => 5;
+    u64 => 6;
+    u64 => 7;
+    u64 => 8
+}
+
 mod private {
     pub trait Sealed {}
 
