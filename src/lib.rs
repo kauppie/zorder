@@ -37,7 +37,7 @@
 //!         assert_eq!(idx, 3);
 //!
 //!         let coord = unsafe { coord_of(idx) };
-//!         assert_eq!(coord, (1, 1));
+//!         assert_eq!(coord, [1u16, 1u16]);
 //!     }
 //! }
 //! ```
@@ -48,7 +48,7 @@ mod deinterleave;
 mod interleave;
 mod mask;
 
-pub use deinterleave::Deinterleave;
+pub use deinterleave::{Deinterleave, DeinterleaveBMI2};
 pub use interleave::{Interleave, InterleaveBMI2};
 
 /// Calculates Z-order curve index for given sequence of coordinates.
