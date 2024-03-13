@@ -24,4 +24,4 @@ name = "bmi2_zorder"
 harness = false
 
 [dependencies]
-num-traits = "0.2.16"
+num-traits = "0.2"
