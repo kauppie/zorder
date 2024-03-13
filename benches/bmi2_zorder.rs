@@ -38,6 +38,14 @@ fn bench_bmi2(c: &mut Criterion) {
         c.bench_function("bmi2::array_coord_of_u8", |b| {
             b.iter(|| unsafe { bmi2::coord_of::<_, 2>(black_box(23776u16)) })
         });
+
+        c.bench_function("bmi2::array_index_of_u8_dim3", |b| {
+            b.iter(|| unsafe { bmi2::index_of(black_box([23u8, 18u8, 112u8])) })
+        });
+
+        c.bench_function("bmi2::array_coord_of_u8_dim3", |b| {
+            b.iter(|| unsafe { bmi2::coord_of::<_, 3>(black_box(2318112u32)) })
+        });
     } else {
         panic!("failed to benchmark: bmi2 feature is not detected");
     }

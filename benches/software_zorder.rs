@@ -50,6 +50,14 @@ fn bench_normal(c: &mut Criterion) {
     c.bench_function("array_coord_of_u8", |b| {
         b.iter(|| coord_of::<_, 2>(black_box(23776u16)))
     });
+
+    c.bench_function("array_index_of_u8_dim3", |b| {
+        b.iter(|| index_of(black_box([23u8, 18u8, 112u8])))
+    });
+
+    c.bench_function("array_coord_of_u8_dim3", |b| {
+        b.iter(|| coord_of::<_, 3>(black_box(2318112u32)))
+    });
 }
 
 criterion_group!(benches, bench_normal,);
