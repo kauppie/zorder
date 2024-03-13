@@ -89,8 +89,14 @@ impl_interleave_output! {
     2, u64 => u128
 }
 
+/// Interleaves the bits of the given number using BMI2 instruction set.
+///
+/// # Safety
+///
+/// This function is safe to call only if the `bmi2` x86_64 feature is
+/// supported by the CPU.
 pub trait InterleaveBMI2<const N: usize>: Interleave<N> {
-    fn interleave_bmi2(self) -> <Self as Interleave<N>>::Output;
+    unsafe fn interleave_bmi2(self) -> <Self as Interleave<N>>::Output;
 }
 
 macro_rules! impl_interleave_bmi2_32 {
@@ -98,10 +104,8 @@ macro_rules! impl_interleave_bmi2_32 {
         $(
             impl InterleaveBMI2<$dim> for $impl_type {
                 #[inline]
-                fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
-                    unsafe {
-                        core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1)).as_()
-                    }
+                unsafe fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
+                    core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1)).as_()
                 }
             }
         )*
@@ -113,10 +117,8 @@ macro_rules! impl_interleave_bmi2_64 {
         $(
             impl InterleaveBMI2<$dim> for $impl_type {
                 #[inline]
-                fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
-                    unsafe {
-                        core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1)).as_()
-                    }
+                unsafe fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
+                    core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1)).as_()
                 }
             }
         )*

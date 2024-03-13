@@ -85,8 +85,15 @@ impl_deinterleave_output! {
     u128 => 16, u8
 }
 
+/// Deinterleave a single number from a set of interleaved numbers using BMI2
+/// instruction set. Inverse of [`InterleaveBMI2`](crate::interleave::InterleaveBMI2).
+///
+/// # Safety
+///
+/// This function is safe to call only if the `bmi2` x86_64 feature is
+/// supported by the CPU.
 pub trait DeinterleaveBMI2<const N: usize>: Deinterleave<N> {
-    fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<N>>::Output;
+    unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<N>>::Output;
 }
 
 macro_rules! impl_deinterleave_bmi2_32 {
@@ -94,7 +101,7 @@ macro_rules! impl_deinterleave_bmi2_32 {
         $(
             impl DeinterleaveBMI2<$dim> for $impl_type {
                 #[inline]
-                fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
+                unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
                     let mask = interleave_mask::<u32>($dim, 1) << lsb;
                     unsafe {
                         core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
@@ -110,7 +117,7 @@ macro_rules! impl_deinterleave_bmi2_64 {
         $(
             impl DeinterleaveBMI2<$dim> for $impl_type {
                 #[inline]
-                fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
+                unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
                     let mask = interleave_mask::<u64>($dim, 1) << lsb;
                     unsafe {
                         core::arch::x86_64::_pext_u64(self.as_(), mask).as_()

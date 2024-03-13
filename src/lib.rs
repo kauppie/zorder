@@ -137,7 +137,7 @@ pub mod bmi2 {
     where
         I: InterleaveBMI2<N>,
     {
-        util::generic_index_of(array, InterleaveBMI2::interleave_bmi2)
+        util::generic_index_of(array, |idx| idx.interleave_bmi2())
     }
 
     /// Returns the 2D coordinates of the given Z-order curve index.
@@ -180,7 +180,7 @@ pub mod bmi2 {
     where
         I: DeinterleaveBMI2<N> + Copy,
     {
-        util::generic_coord_of(index, DeinterleaveBMI2::deinterleave_bmi2)
+        util::generic_coord_of(index, |idx, i| idx.deinterleave_bmi2(i))
     }
 }
 
