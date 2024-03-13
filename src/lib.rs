@@ -49,7 +49,7 @@ mod interleave;
 mod mask;
 
 pub use deinterleave::Deinterleave;
-pub use interleave::{Interleave, InterleaveSIMD};
+pub use interleave::{Interleave, InterleaveBMI2};
 
 /// Calculates Z-order curve index for given sequence of coordinates.
 ///
@@ -93,7 +93,7 @@ where
 
 #[cfg(target_arch = "x86_64")]
 pub mod bmi2 {
-    use crate::{interleave::InterleaveSIMD, util, Interleave};
+    use crate::{interleave::InterleaveBMI2, util, Interleave};
 
     /// Calculates Z-order curve index for given sequence of coordinates.
     ///
@@ -133,9 +133,9 @@ pub mod bmi2 {
     #[target_feature(enable = "bmi2")]
     pub unsafe fn index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
     where
-        I: InterleaveSIMD<N>,
+        I: InterleaveBMI2<N>,
     {
-        util::generic_index_of(array, InterleaveSIMD::interleave_simd)
+        util::generic_index_of(array, InterleaveBMI2::interleave_bmi2)
     }
 
     /// Returns the 2D coordinates of the given 32-bit Z-order curve index.
