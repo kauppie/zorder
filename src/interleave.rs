@@ -100,8 +100,7 @@ macro_rules! impl_interleave_bmi2_32 {
                 #[inline]
                 fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
                     unsafe {
-                        core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1))
-                            as <Self as Interleave<$dim>>::Output
+                        core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1)).as_()
                     }
                 }
             }
@@ -116,8 +115,7 @@ macro_rules! impl_interleave_bmi2_64 {
                 #[inline]
                 fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
                     unsafe {
-                        core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1))
-                            as <Self as Interleave<$dim>>::Output
+                        core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1)).as_()
                     }
                 }
             }
