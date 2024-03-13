@@ -2,22 +2,16 @@ use num_traits::{cast::AsPrimitive, PrimInt};
 
 use crate::mask::{interleave_mask, interleave_shift, BitCount};
 
-/// Deinterleave a single number from a set of interleaved numbers.
-///
-// Original idea from:
-/// https://stackoverflow.com/questions/4909263/how-to-efficiently-de-interleave-bits-inverse-morton
-///
-/// Current implementation is rather based on the [Interleave](crate::interleave::Interleave) trait
-/// and its implementation.
+/// Deinterleave a single number from a set of interleaved numbers. Inverse of
+/// [`Interleave`](crate::interleave::Interleave).
 pub trait Deinterleave<const N: usize>: private::Sealed {
+    /// Smallest unsigned integer type that can hold the deinterleaved bits.
     type Output;
 
     /// Deinterleaves a number from a set of interleaved numbers starting from
-    /// the given least significant bit `lsb` position.
+    /// the given least significant bit (`lsb`) index.
     ///
-    /// For `lsb` == 0, the actual LSB of the number is used is the first
-    /// interleaved bit. Dimension `N` is used to determine the number of
-    /// bits there are between output's bits.
+    /// Dimension `N` determines which bits are extracted to form the output number.
     fn deinterleave(self, lsb: usize) -> Self::Output;
 }
 

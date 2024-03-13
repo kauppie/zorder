@@ -1,7 +1,9 @@
 /// Used to determine the number of bits in the given type.
 pub trait BitCount {
+    /// The number of bits in the type.
     const BITS: u32;
 
+    /// The base-2 logarithm of the number of bits in the type.
     // HACK: only works for powers of 2.
     const BITS_ILOG2: u32 = Self::BITS.trailing_zeros();
 }
