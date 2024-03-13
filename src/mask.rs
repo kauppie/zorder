@@ -25,7 +25,7 @@ impl_bit_count! {
 /// Calculates the shift amount for the given interleave step and dimension.
 #[inline]
 pub(crate) const fn interleave_shift(dim: u32, i: u32) -> u32 {
-    (dim - 1) * (1 << i)
+    (dim - 1) << i
 }
 
 /// Calculates the mask for one step in interleaving and deinterleaving bits of a number.
