@@ -33,35 +33,10 @@
 //!     use zorder::bmi2::{index_of, coord_of};
 //!
 //!     if is_x86_feature_detected!("bmi2") {
-//!         let idx = unsafe { index_of((1, 1)) };
+//!         let idx = unsafe { index_of([1u16, 1u16]) };
 //!         assert_eq!(idx, 3);
 //!
 //!         let coord = unsafe { coord_of(idx) };
-//!         assert_eq!(coord, (1, 1));
-//!     }
-//! }
-//! ```
-//!
-//! There exists also functions for wider 64-bit indices with '_64' postfix:
-//!
-//! ```
-//! use zorder::{index_of, coord_of};
-//!
-//! let idx = index_of([1u32, 1u32]);
-//! assert_eq!(idx, 3u64);
-//!
-//! let coord = coord_of(idx);
-//! assert_eq!(coord, [1u32, 1u32]);
-//!
-//! #[cfg(target_arch = "x86_64")]
-//! {
-//!     use zorder::bmi2::{index_of_64, coord_of_64};
-//!
-//!     if is_x86_feature_detected!("bmi2") {
-//!         let idx = unsafe { index_of_64((1, 1)) };
-//!         assert_eq!(idx, 3);
-//!
-//!         let coord = unsafe { coord_of_64(idx) };
 //!         assert_eq!(coord, (1, 1));
 //!     }
 //! }
@@ -73,10 +48,8 @@ mod deinterleave;
 mod interleave;
 mod mask;
 
-use num_traits::Zero;
-
 pub use deinterleave::Deinterleave;
-pub use interleave::Interleave;
+pub use interleave::{Interleave, InterleaveSIMD};
 
 /// Calculates Z-order curve index for given sequence of coordinates.
 ///
@@ -95,14 +68,7 @@ pub fn index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Outpu
 where
     I: Interleave<N>,
 {
-    array
-        .into_iter()
-        .map(Interleave::interleave)
-        .enumerate()
-        .fold(
-            <I as Interleave<N>>::Output::zero(),
-            |acc, (i, interleaved)| acc | (interleaved << i),
-        )
+    util::generic_index_of(array, Interleave::interleave)
 }
 
 /// Returns the 2D coordinates of the given Z-order curve index.
@@ -127,9 +93,14 @@ where
 
 #[cfg(target_arch = "x86_64")]
 pub mod bmi2 {
-    /// Returns the Z-order curve index of the given 16-bit 2D coordinates.
+    use crate::{interleave::InterleaveSIMD, util, Interleave};
+
+    /// Calculates Z-order curve index for given sequence of coordinates.
     ///
-    /// This function requires the bmi2 instruction set, but it can be
+    /// Output type will be the smallest unsigned integer type that can hold all
+    /// of the given coordinates.
+    ///
+    /// This function requires the `bmi2` instruction set, but it can be
     /// faster than the software implementation.
     ///
     /// # Safety
@@ -149,68 +120,22 @@ pub mod bmi2 {
     /// # Examples
     ///
     /// ```
-    /// use zorder::bmi2::index_of;
-    ///
+    /// # use zorder::bmi2::index_of;
     /// #[cfg(target_arch = "x86_64")]
     /// {
     ///     if is_x86_feature_detected!("bmi2") {
-    ///         let idx = unsafe { index_of((1, 1)) };
-    ///         assert_eq!(idx, 3);
+    ///         let idx = index_of([3u32, 7u32]);
+    ///         assert_eq!(idx, 0b101_111u64);
     ///     }
     /// }
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
-    pub unsafe fn index_of((x, y): (u16, u16)) -> u32 {
-        use core::arch::x86_64::_pdep_u32;
-
-        let x = _pdep_u32(x as u32, 0x55555555);
-        let y = _pdep_u32(y as u32, 0xAAAAAAAA);
-        x | y
-    }
-
-    /// Returns the Z-order curve index of the given 32-bit 2D coordinates.
-    ///
-    /// This function operates on wider indices than [`bmi2::index_of`](crate::bmi2::index_of).
-    ///
-    /// This function requires the bmi2 instruction set, but it can be
-    /// faster than the software implementation.
-    ///
-    /// # Safety
-    ///
-    /// This function is safe to call only if the `bmi2` x86_64 feature is
-    /// supported by the CPU. This can be checked at runtime:
-    ///
-    /// ```
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         // ...
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use zorder::bmi2::index_of_64;
-    ///
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         let idx = unsafe { index_of_64((1, 1)) };
-    ///         assert_eq!(idx, 3);
-    ///     }
-    /// }
-    /// ```
-    #[inline]
-    #[target_feature(enable = "bmi2")]
-    pub unsafe fn index_of_64((x, y): (u32, u32)) -> u64 {
-        use core::arch::x86_64::_pdep_u64;
-
-        let x = _pdep_u64(x as u64, 0x5555555555555555);
-        let y = _pdep_u64(y as u64, 0xAAAAAAAAAAAAAAAA);
-        x | y
+    pub unsafe fn index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
+    where
+        I: InterleaveSIMD<N>,
+    {
+        util::generic_index_of(array, InterleaveSIMD::interleave_simd)
     }
 
     /// Returns the 2D coordinates of the given 32-bit Z-order curve index.
@@ -297,6 +222,26 @@ pub mod bmi2 {
         let x = _pext_u64(idx, 0x5555555555555555);
         let y = _pext_u64(idx, 0xAAAAAAAAAAAAAAAA);
         (x as u32, y as u32)
+    }
+}
+
+mod util {
+    use crate::Interleave;
+    use num_traits::Zero;
+
+    #[inline]
+    pub(super) fn generic_index_of<I, F, const N: usize>(
+        array: [I; N],
+        interleave: F,
+    ) -> <I as Interleave<N>>::Output
+    where
+        I: Interleave<N>,
+        F: Fn(I) -> <I as Interleave<N>>::Output,
+    {
+        array.into_iter().map(interleave).enumerate().fold(
+            <I as Interleave<N>>::Output::zero(),
+            |acc, (i, interleaved)| acc | (interleaved << i),
+        )
     }
 }
 
