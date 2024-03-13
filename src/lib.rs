@@ -87,7 +87,6 @@ pub use interleave::Interleave;
 ///
 /// ```
 /// # use zorder::index_of;
-///
 /// let idx = index_of([3u32, 7u32]);
 /// assert_eq!(idx, 0b101_111u64);
 /// ```
@@ -115,7 +114,6 @@ where
 ///
 /// ```
 /// # use zorder::coord_of;
-///
 /// let coord = coord_of(0b101_111u64);
 /// assert_eq!(coord, [3u32, 7u32]);
 /// ```

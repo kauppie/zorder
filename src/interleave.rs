@@ -8,8 +8,9 @@ use crate::mask::{interleave_mask, interleave_shift, BitCount};
 /// Naive implementation of this algorithm would be O(n) where `n` is the
 /// number of bits in the number. Implementations seen here are O(log n).
 /// They are extrapolated and generalized from the algorithm described here:
-/// http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN.
+/// <http://graphics.stanford.edu/~seander/bithacks.html#InterleaveBMN>.
 pub trait Interleave<const N: usize>: private::Sealed {
+    /// Smallest unsigned integer type that can hold the interleaved bits.
     type Output: PrimInt;
 
     /// Interleaves the bits of the given number.
