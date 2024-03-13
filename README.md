@@ -37,6 +37,12 @@ This should be faster but requires x86 specific instruction set support.
 }
 ```
 
+You can validate that your CPU supports `bmi2` with the provided example:
+
+```sh
+$ cargo run --example bmi2_support
+```
+
 ## Benchmarks
 
 Benchmarked with [criterion](https://github.com/bheisler/criterion.rs) using AMD Ryzen 9 7950X on WSL2. Standard `release` profile was used. All results are rounded up to three significant figures.
