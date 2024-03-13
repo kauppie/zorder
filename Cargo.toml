@@ -16,7 +16,11 @@ categories = ["algorithms", "hardware-support", "no-std::no-alloc"]
 criterion = { version = "0.4", features = ["html_reports"] }
 
 [[bench]]
-name = "zorder_bench"
+name = "software_zorder"
+harness = false
+
+[[bench]]
+name = "bmi2_zorder"
 harness = false
 
 [dependencies]
