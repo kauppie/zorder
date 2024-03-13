@@ -93,7 +93,23 @@ pub trait InterleaveSIMD<const N: usize>: Interleave<N> {
     fn interleave_simd(self) -> <Self as Interleave<N>>::Output;
 }
 
-macro_rules! impl_interleave_simd {
+macro_rules! impl_interleave_simd_32 {
+    ($($dim:expr, $impl_type:ty);*) => {
+        $(
+            impl InterleaveSIMD<$dim> for $impl_type {
+                #[inline]
+                fn interleave_simd(self) -> <Self as Interleave<$dim>>::Output {
+                    unsafe {
+                        core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1))
+                            as <Self as Interleave<$dim>>::Output
+                    }
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_interleave_simd_64 {
     ($($dim:expr, $impl_type:ty);*) => {
         $(
             impl InterleaveSIMD<$dim> for $impl_type {
@@ -109,15 +125,18 @@ macro_rules! impl_interleave_simd {
     };
 }
 
-impl_interleave_simd! {
+impl_interleave_simd_32! {
     2, u8;
     3, u8;
     4, u8;
+    2, u16
+}
+
+impl_interleave_simd_64! {
     5, u8;
     6, u8;
     7, u8;
     8, u8;
-    2, u16;
     3, u16;
     4, u16;
     2, u32
