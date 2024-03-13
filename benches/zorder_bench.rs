@@ -54,21 +54,16 @@ fn criterion_benchmark(c: &mut Criterion) {
     #[cfg(target_arch = "x86_64")]
     {
         if is_x86_feature_detected!("bmi2") {
-            c.bench_function("bmi2::index_of", |b| {
-                b.iter(|| unsafe { bmi2::index_of(black_box((2374, 8761))) })
+            c.bench_function("bmi2::index_of_u16", |b| {
+                b.iter(|| unsafe { bmi2::index_of(black_box([2374u16, 8761u16])) })
             });
 
             c.bench_function("bmi2::coord_of", |b| {
-                b.iter(|| unsafe { bmi2::coord_of(black_box(23748761)) })
+                b.iter(|| unsafe { bmi2::coord_of(black_box(23748761u32)) })
             });
-        }
-    }
 
-    #[cfg(target_arch = "x86_64")]
-    {
-        if is_x86_feature_detected!("bmi2") {
-            c.bench_function("bmi2::index_of_64", |b| {
-                b.iter(|| unsafe { bmi2::index_of_64(black_box((23744732, 87611678))) })
+            c.bench_function("bmi2::index_of_u32", |b| {
+                b.iter(|| unsafe { bmi2::index_of(black_box([23744732u32, 87611678u32])) })
             });
 
             c.bench_function("bmi2::coord_of_64", |b| {
