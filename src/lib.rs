@@ -1,15 +1,14 @@
 //! # zorder
 //!
-//! This crate provides functions to convert between 2D coordinates and a Z-order curve index.
-//! The Z-order curve is a space-filling curve that maps 2D coordinates to a 1D index.
-//! The Z-order curve is also known as Morton code. Advantage of the Z-order curve is that
-//! is may be used to efficiently store 2D data in a 1D array as it preserves locality, and
-//! is therefore cache-friendly.
+//! This crate provides functions to convert N-dimensional[^1] coordinates to
+//! [Z-order curve](https://en.wikipedia.org/wiki/Z-order_curve) indexes and back.
+//! Z-order curve, also known as Morton code, is a mapping of N-dimensional coordinates
+//! to 1D index which preverses locality.
+//! It is cache-efficient way of storing N-dimensional data in 1D array.
 //!
 //! This crate provides two implementations of the Z-order curve, one using a software
 //! implementation supported by all platforms and one using bmi2 instructions
 //! supported by modern x86_64 CPUs.
-//!
 //!
 //! # Examples
 //!
