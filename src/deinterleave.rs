@@ -87,12 +87,14 @@ impl_deinterleave_output! {
 
 /// Deinterleave a single number from a set of interleaved numbers using BMI2
 /// instruction set. Inverse of [`InterleaveBMI2`](crate::interleave::InterleaveBMI2).
-///
-/// # Safety
-///
-/// This function is safe to call only if the `bmi2` x86_64 feature is
-/// supported by the CPU.
 pub trait DeinterleaveBMI2<const N: usize>: Deinterleave<N> {
+    /// Deinterleave a single number from a set of interleaved numbers using BMI2
+    /// instruction set. Inverse of [`InterleaveBMI2`](crate::interleave::InterleaveBMI2).
+    ///
+    /// # Safety
+    ///
+    /// This function is safe to call only if the `bmi2` x86_64 feature is
+    /// supported by the CPU.
     unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<N>>::Output;
 }
 
