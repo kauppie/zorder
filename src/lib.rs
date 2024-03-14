@@ -335,9 +335,63 @@ mod tests {
     use super::*;
 
     #[test]
-    fn index_and_back() {
+    fn index_and_back_16() {
+        for i in 0..10_000u16 {
+            let array: [_; 2] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+    }
+
+    #[test]
+    fn index_and_back_32() {
         for i in 0..10_000u32 {
             let array: [_; 2] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+
+        for i in 0..10_000u32 {
+            let array: [_; 4] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+    }
+
+    #[test]
+    fn index_and_back_64() {
+        for i in 0..10_000u64 {
+            let array: [_; 2] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+
+        for i in 0..10_000u64 {
+            let array: [_; 3] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+
+        for i in 0..10_000u64 {
+            let array: [_; 5] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+    }
+
+    #[test]
+    fn index_and_back_128() {
+        for i in 0..10_000u128 {
+            let array: [_; 2] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+
+        for i in 0..10_000u128 {
+            let array: [_; 3] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+
+        for i in 0..10_000u128 {
+            let array: [_; 5] = coord_of(i);
+            assert_eq!(index_of(array), i);
+        }
+
+        for i in 0..10_000u128 {
+            let array: [_; 9] = coord_of(i);
             assert_eq!(index_of(array), i);
         }
     }
