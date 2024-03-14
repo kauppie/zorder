@@ -12,6 +12,9 @@ readme = "README.md"
 keywords = ["z-order", "bmi2", "morton"]
 categories = ["algorithms", "hardware-support", "no-std::no-alloc"]
 
+[dependencies]
+num-traits = "0.2"
+
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
 
@@ -22,6 +25,3 @@ harness = false
 [[bench]]
 name = "bmi2_zorder"
 harness = false
-
-[dependencies]
-num-traits = "0.2"
