@@ -119,15 +119,15 @@ where
 ///
 /// ```
 /// # use zorder::bmi2;
-/// if bmi2::has_hardware_support() {
-///     // Only works on x86_64 CPUs.
-///     let idx = unsafe { bmi2::index_of_unchecked([3u32, 7u32]) };
-///     assert_eq!(idx, 0b101_111u64);
-/// }
-///
 /// let support_token = bmi2::HardwareSupportToken::new();
 /// if let Some(support_token) = support_token {
 ///     let idx = bmi2::index_of([3u32, 7u32], support_token);
+///     assert_eq!(idx, 0b101_111u64);
+/// }
+///
+/// if bmi2::has_hardware_support() {
+///     // Only works on x86_64 CPUs.
+///     let idx = unsafe { bmi2::index_of_unchecked([3u32, 7u32]) };
 ///     assert_eq!(idx, 0b101_111u64);
 /// }
 /// ```
