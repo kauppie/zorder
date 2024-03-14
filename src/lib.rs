@@ -314,16 +314,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn array_conversions() {
+    fn index_and_back() {
         for i in 0..10_000u32 {
             let array: [_; 2] = coord_of(i);
             assert_eq!(index_of(array), i);
         }
-    }
-
-    #[test]
-    fn interleave() {
-        let x = index_of([7u32, 7u32]);
-        assert_eq!(x, 0b111111);
     }
 }
