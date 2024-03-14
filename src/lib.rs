@@ -29,15 +29,6 @@
 //! ```
 //! use zorder::bmi2::{coord_of, coord_of_unchecked, HardwareSupportToken, index_of, index_of_unchecked};
 //!
-//! // Unsafe interface with hardware support check.
-//! if zorder::bmi2::has_hardware_support() {
-//!     let idx = unsafe { index_of_unchecked([1u16, 1u16]) };
-//!     assert_eq!(idx, 3u32);
-//!
-//!     let coord = unsafe { coord_of_unchecked(idx) };
-//!     assert_eq!(coord, [1u16, 1u16]);
-//! }
-//!
 //! // Safe interface with hardware support token.
 //! let support_token = HardwareSupportToken::new();
 //! if let Some(support_token) = support_token {
@@ -45,6 +36,16 @@
 //!     assert_eq!(idx, 3u32);
 //!
 //!     let coord = coord_of(idx, support_token);
+//!     assert_eq!(coord, [1u16, 1u16]);
+//! }
+//!
+//! // Unsafe interface with hardware support check.
+//! // Only works on x86_64 CPUs.
+//! if zorder::bmi2::has_hardware_support() {
+//!     let idx = unsafe { index_of_unchecked([1u16, 1u16]) };
+//!     assert_eq!(idx, 3u32);
+//!
+//!     let coord = unsafe { coord_of_unchecked(idx) };
 //!     assert_eq!(coord, [1u16, 1u16]);
 //! }
 //! ```
