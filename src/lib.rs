@@ -108,7 +108,8 @@ where
 /// This module provides unsafe `bmi2` accelerated functions and safe wrappers
 /// around them. Safety of calling [`index_of_unchecked`](crate::bmi2::index_of_unchecked)
 /// and [`coord_of_unchecked`](crate::bmi2::coord_of_unchecked) can be validated at
-/// runtime using [`has_hardware_support`](crate::bmi2::has_hardware_support).
+/// runtime using [`has_hardware_support`](crate::bmi2::has_hardware_support). Unchecked
+/// functions are only available on x86_64 CPUs.
 /// Optionally, you can acquire a [`HardwareSupportToken`](crate::bmi2::HardwareSupportToken), and then call
 /// [`index_of`](crate::bmi2::index_of) and [`coord_of`](crate::bmi2::coord_of) without unsafe.
 ///
@@ -119,6 +120,7 @@ where
 /// ```
 /// # use zorder::bmi2;
 /// if bmi2::has_hardware_support() {
+///     // Only works on x86_64 CPUs.
 ///     let idx = unsafe { bmi2::index_of_unchecked([3u32, 7u32]) };
 ///     assert_eq!(idx, 0b101_111u64);
 /// }
@@ -209,7 +211,7 @@ pub mod bmi2 {
     ///
     /// ```
     /// if zorder::bmi2::has_hardware_support() {
-    ///    // ...
+    ///     // ...
     /// }
     /// ```
     ///
@@ -217,6 +219,7 @@ pub mod bmi2 {
     ///
     /// ```
     /// if zorder::bmi2::has_hardware_support() {
+    ///     // Only works on x86_64 CPUs.
     ///     let idx = unsafe { index_of_unchecked([3u32, 7u32]) };
     ///     assert_eq!(idx, 0b101_111u64);
     /// }
@@ -274,7 +277,7 @@ pub mod bmi2 {
     /// ```
     /// # use zorder::bmi2;
     /// if bmi2::has_hardware_support() {
-    ///    // ...
+    ///     // ...
     /// }
     /// ```
     ///
@@ -283,6 +286,7 @@ pub mod bmi2 {
     /// ```
     /// # use zorder::bmi2;
     /// if bmi2::has_hardware_support() {
+    ///     // Only works on x86_64 CPUs.
     ///     let coord = unsafe { coord_of_unchecked(0b101_111u64) };
     ///     assert_eq!(coord, [3u32, 7u32]);
     /// }
