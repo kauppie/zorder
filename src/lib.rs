@@ -10,6 +10,8 @@
 //! implementation supported by all platforms and one using bmi2 instructions
 //! supported by modern x86_64 CPUs.
 //!
+//! [^1]: Maximum number of dimensions is limited by the largest unsigned integer type, `u128`, which is able to store 16 8-bit coordinates. `bmi2` based approach is limited to `u64`.
+//!
 //! # Examples
 //!
 //! Basic usage with software implementation:
