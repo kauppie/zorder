@@ -18,6 +18,10 @@ num-traits = "0.2"
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
 
+[features]
+default = ["std"]
+std = []
+
 [[bench]]
 name = "software_zorder"
 harness = false

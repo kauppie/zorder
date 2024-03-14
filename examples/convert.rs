@@ -15,18 +15,15 @@ fn main() {
         println!("{:?} => {:032b} => {:?}", coord, idx, new_coord);
     }
 
-    #[cfg(target_arch = "x86_64")]
-    {
-        if is_x86_feature_detected!("bmi2") {
-            println!();
+    if zorder::bmi2::has_hardware_support() {
+        println!();
 
-            println!("BMI2 implementation:");
-            for coord in list {
-                let idx = unsafe { zorder::bmi2::index_of(coord) };
-                let new_coord: [u8; 3] = unsafe { zorder::bmi2::coord_of(idx) };
+        println!("BMI2 implementation:");
+        for coord in list {
+            let idx = unsafe { zorder::bmi2::index_of(coord) };
+            let new_coord: [u8; 3] = unsafe { zorder::bmi2::coord_of(idx) };
 
-                println!("{:?} => {:032b} => {:?}", coord, idx, new_coord);
-            }
+            println!("{:?} => {:032b} => {:?}", coord, idx, new_coord);
         }
     }
 }

@@ -28,21 +28,21 @@
 //! Basic usage with bmi2 implementation:
 //!
 //! ```
-//! #[cfg(target_arch = "x86_64")]
-//! {
-//!     use zorder::bmi2::{index_of, coord_of};
+//! use zorder::bmi2::{coord_of, index_of};
 //!
-//!     if is_x86_feature_detected!("bmi2") {
-//!         let idx = unsafe { index_of([1u16, 1u16]) };
-//!         assert_eq!(idx, 3);
+//! if zorder::bmi2::has_hardware_support() {
+//!     let idx = unsafe { index_of([1u16, 1u16]) };
+//!     assert_eq!(idx, 3u32);
 //!
-//!         let coord = unsafe { coord_of(idx) };
-//!         assert_eq!(coord, [1u16, 1u16]);
-//!     }
+//!     let coord = unsafe { coord_of(idx) };
+//!     assert_eq!(coord, [1u16, 1u16]);
 //! }
 //! ```
 
 #![no_std]
+
+#[cfg(feature = "std")]
+extern crate std;
 
 mod deinterleave;
 mod interleave;
@@ -91,11 +91,25 @@ where
     util::generic_coord_of(index, Deinterleave::deinterleave)
 }
 
-#[cfg(target_arch = "x86_64")]
 pub mod bmi2 {
     use crate::{
         deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2, util, Deinterleave, Interleave,
     };
+
+    /// Returns true if the CPU supports the bmi2 instruction set.
+    ///
+    /// You can use this function to validate that [`zorder::bmi2::index_of`] and
+    /// [`zorder::bmi2::coord_of`] can be safely called.
+    pub fn has_hardware_support() -> bool {
+        #[cfg(all(target_arch = "x86_64", feature = "std"))]
+        {
+            std::is_x86_feature_detected!("bmi2")
+        }
+        #[cfg(not(all(target_arch = "x86_64", feature = "std")))]
+        {
+            false
+        }
+    }
 
     /// Calculates Z-order curve index for given sequence of coordinates.
     ///
@@ -133,6 +147,7 @@ pub mod bmi2 {
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
+    #[cfg(target_arch = "x86_64")]
     pub unsafe fn index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
     where
         I: InterleaveBMI2<N>,
@@ -176,6 +191,7 @@ pub mod bmi2 {
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
+    #[cfg(target_arch = "x86_64")]
     pub unsafe fn coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
     where
         I: DeinterleaveBMI2<N> + Copy,
