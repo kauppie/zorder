@@ -106,7 +106,12 @@ macro_rules! impl_interleave_bmi2_32 {
             impl InterleaveBMI2<$dim> for $impl_type {
                 #[inline]
                 unsafe fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
-                    core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1)).as_()
+                    #[cfg(target_arch = "x86_64")]
+                    {
+                        core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1)).as_()
+                    }
+                    #[cfg(not(target_arch = "x86_64"))]
+                    panic!("BMI2 feature is not supported on this architecture")
                 }
             }
         )*
@@ -119,7 +124,12 @@ macro_rules! impl_interleave_bmi2_64 {
             impl InterleaveBMI2<$dim> for $impl_type {
                 #[inline]
                 unsafe fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
-                    core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1)).as_()
+                    #[cfg(target_arch = "x86_64")]
+                    {
+                        core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1)).as_()
+                    }
+                    #[cfg(not(target_arch = "x86_64"))]
+                    panic!("BMI2 feature is not supported on this architecture")
                 }
             }
         )*

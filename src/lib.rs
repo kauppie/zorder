@@ -111,6 +111,8 @@ where
 /// Optionally, you can acquire a [`HardwareSupportToken`](crate::bmi2::HardwareSupportToken), and then call
 /// [`index_of`](crate::bmi2::index_of) and [`coord_of`](crate::bmi2::coord_of) without unsafe.
 ///
+/// Note that the bmi2 instruction set is supported only on modern x86_64 CPUs.
+///
 /// # Examples
 ///
 /// ```
@@ -128,7 +130,7 @@ where
 /// ```
 pub mod bmi2 {
     use crate::{
-        deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2, util, Deinterleave, Interleave,
+        deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2, Deinterleave, Interleave,
     };
 
     /// Returns true if the CPU supports the bmi2 instruction set.
@@ -180,7 +182,15 @@ pub mod bmi2 {
         // SAFETY: Having an instance of `HardwareSupportToken` guarantees that
         // the `bmi2` instruction set is supported by the CPU and that it is safe
         // to call `index_of_unchecked`.
-        unsafe { index_of_unchecked(array) }
+        #[cfg(target_arch = "x86_64")]
+        unsafe {
+            index_of_unchecked(array)
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            let _ = array;
+            unreachable!("HardwareSupportToken cannot be created on non-x86_64 platforms")
+        }
     }
 
     /// Calculates Z-order curve index for given sequence of coordinates.
@@ -212,13 +222,14 @@ pub mod bmi2 {
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
+    #[cfg(target_arch = "x86_64")]
     pub unsafe fn index_of_unchecked<I, const N: usize>(
         array: [I; N],
     ) -> <I as Interleave<N>>::Output
     where
         I: InterleaveBMI2<N>,
     {
-        util::generic_index_of(array, |idx| idx.interleave_bmi2())
+        crate::util::generic_index_of(array, |idx| idx.interleave_bmi2())
     }
 
     /// Safe wrapper around [`coord_of_unchecked`] that requires a
@@ -235,7 +246,15 @@ pub mod bmi2 {
         // SAFETY: Having an instance of `HardwareSupportToken` guarantees that
         // the `bmi2` instruction set is supported by the CPU and that it is safe
         // to call `coord_of_unchecked`.
-        unsafe { coord_of_unchecked(index) }
+        #[cfg(target_arch = "x86_64")]
+        unsafe {
+            coord_of_unchecked(index)
+        }
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            let _ = index;
+            unreachable!("HardwareSupportToken cannot be created on non-x86_64 platforms")
+        }
     }
 
     /// Returns the 2D coordinates of the given Z-order curve index.
@@ -269,13 +288,14 @@ pub mod bmi2 {
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
+    #[cfg(target_arch = "x86_64")]
     pub unsafe fn coord_of_unchecked<I, const N: usize>(
         index: I,
     ) -> [<I as Deinterleave<N>>::Output; N]
     where
         I: DeinterleaveBMI2<N> + Copy,
     {
-        util::generic_coord_of(index, |idx, i| idx.deinterleave_bmi2(i))
+        crate::util::generic_coord_of(index, |idx, i| idx.deinterleave_bmi2(i))
     }
 }
 
