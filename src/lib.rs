@@ -59,8 +59,8 @@ mod deinterleave;
 mod interleave;
 mod mask;
 
-pub use deinterleave::{Deinterleave, DeinterleaveBMI2};
-pub use interleave::{Interleave, InterleaveBMI2};
+pub use deinterleave::Deinterleave;
+pub use interleave::Interleave;
 
 /// Calculates Z-order curve index for given sequence of coordinates.
 ///
@@ -132,9 +132,9 @@ where
 /// }
 /// ```
 pub mod bmi2 {
-    use crate::{
-        deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2, Deinterleave, Interleave,
-    };
+    pub use crate::{deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2};
+
+    use crate::{Deinterleave, Interleave};
 
     /// Returns true if the CPU supports the bmi2 instruction set.
     ///
