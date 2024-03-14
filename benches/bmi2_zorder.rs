@@ -2,11 +2,8 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 use zorder::bmi2;
 
-#[cfg(target_arch = "x86_64")]
 fn bench_bmi2(c: &mut Criterion) {
-    let support_token = bmi2::HardwareSupportToken::new();
-
-    if let Some(support_token) = support_token {
+    if let Some(support_token) = bmi2::HardwareSupportToken::new() {
         c.bench_function("bmi2::array_index_of_u32", |b| {
             b.iter(|| bmi2::index_of(black_box([2312347u32, 76971888u32]), support_token))
         });
