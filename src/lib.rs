@@ -1,5 +1,3 @@
-//! # zorder
-//!
 //! This crate provides functions to convert N-dimensional[^1] coordinates to
 //! [Z-order curve](https://en.wikipedia.org/wiki/Z-order_curve) indexes and back.
 //! Z-order curve, also known as Morton code, is a mapping of N-dimensional coordinates
@@ -29,13 +27,24 @@
 //! Basic usage with bmi2 implementation:
 //!
 //! ```
-//! use zorder::bmi2::{coord_of_unchecked, index_of_unchecked};
+//! use zorder::bmi2::{coord_of, coord_of_unchecked, HardwareSupportToken, index_of, index_of_unchecked};
 //!
+//! // Unsafe interface with hardware support check.
 //! if zorder::bmi2::has_hardware_support() {
 //!     let idx = unsafe { index_of_unchecked([1u16, 1u16]) };
 //!     assert_eq!(idx, 3u32);
 //!
 //!     let coord = unsafe { coord_of_unchecked(idx) };
+//!     assert_eq!(coord, [1u16, 1u16]);
+//! }
+//!
+//! // Safe interface with hardware support token.
+//! let support_token = HardwareSupportToken::new();
+//! if let Some(support_token) = support_token {
+//!     let idx = index_of([1u16, 1u16], support_token);
+//!     assert_eq!(idx, 3u32);
+//!
+//!     let coord = coord_of(idx, support_token);
 //!     assert_eq!(coord, [1u16, 1u16]);
 //! }
 //! ```
@@ -92,6 +101,31 @@ where
     util::generic_coord_of(index, Deinterleave::deinterleave)
 }
 
+/// `bmi2` module provides Z-order curve index and coordinate calculations
+/// using the bmi2 instruction set.
+///
+/// This module provides unsafe `bmi2` accelerated functions and safe wrappers
+/// around them. Safety of calling [`index_of_unchecked`](crate::bmi2::index_of_unchecked)
+/// and [`coord_of_unchecked`](crate::bmi2::coord_of_unchecked) can be validated at
+/// runtime using [`has_hardware_support`](crate::bmi2::has_hardware_support).
+/// Optionally, you can acquire a [`HardwareSupportToken`](crate::bmi2::HardwareSupportToken), and then call
+/// [`index_of`](crate::bmi2::index_of) and [`coord_of`](crate::bmi2::coord_of) without unsafe.
+///
+/// # Examples
+///
+/// ```
+/// # use zorder::bmi2;
+/// if bmi2::has_hardware_support() {
+///     let idx = unsafe { bmi2::index_of_unchecked([3u32, 7u32]) };
+///     assert_eq!(idx, 0b101_111u64);
+/// }
+///
+/// let support_token = bmi2::HardwareSupportToken::new();
+/// if let Some(support_token) = support_token {
+///     let idx = bmi2::index_of([3u32, 7u32], support_token);
+///     assert_eq!(idx, 0b101_111u64);
+/// }
+/// ```
 pub mod bmi2 {
     use crate::{
         deinterleave::DeinterleaveBMI2, interleave::InterleaveBMI2, util, Deinterleave, Interleave,

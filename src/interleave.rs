@@ -90,12 +90,13 @@ impl_interleave_output! {
 }
 
 /// Interleaves the bits of the given number using BMI2 instruction set.
-///
-/// # Safety
-///
-/// This function is safe to call only if the `bmi2` x86_64 feature is
-/// supported by the CPU.
 pub trait InterleaveBMI2<const N: usize>: Interleave<N> {
+    /// Interleaves the bits of the given number using BMI2 instruction set.
+    ///
+    /// # Safety
+    ///
+    /// This function is safe to call only if the `bmi2` x86_64 feature is
+    /// supported by the CPU.
     unsafe fn interleave_bmi2(self) -> <Self as Interleave<N>>::Output;
 }
 
