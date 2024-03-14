@@ -104,9 +104,17 @@ macro_rules! impl_deinterleave_bmi2_32 {
             impl DeinterleaveBMI2<$dim> for $impl_type {
                 #[inline]
                 unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
-                    let mask = interleave_mask::<u32>($dim, 1) << lsb;
-                    unsafe {
-                        core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
+                    #[cfg(target_arch = "x86_64")]
+                    {
+                        let mask = interleave_mask::<u32>($dim, 1) << lsb;
+                        unsafe {
+                            core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
+                        }
+                    }
+                    #[cfg(not(target_arch = "x86_64"))]
+                    {
+                        let _ = lsb;
+                        panic!("BMI2 feature is not supported on this architecture")
                     }
                 }
             }
@@ -120,9 +128,17 @@ macro_rules! impl_deinterleave_bmi2_64 {
             impl DeinterleaveBMI2<$dim> for $impl_type {
                 #[inline]
                 unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
-                    let mask = interleave_mask::<u64>($dim, 1) << lsb;
-                    unsafe {
-                        core::arch::x86_64::_pext_u64(self.as_(), mask).as_()
+                    #[cfg(target_arch = "x86_64")]
+                    {
+                        let mask = interleave_mask::<u64>($dim, 1) << lsb;
+                        unsafe {
+                            core::arch::x86_64::_pext_u64(self.as_(), mask).as_()
+                        }
+                    }
+                    #[cfg(not(target_arch = "x86_64"))]
+                    {
+                        let _ = lsb;
+                        panic!("BMI2 feature is not supported on this architecture")
                     }
                 }
             }

@@ -15,13 +15,13 @@ fn main() {
         println!("{:?} => {:032b} => {:?}", coord, idx, new_coord);
     }
 
-    if zorder::bmi2::has_hardware_support() {
+    if let Some(support_token) = zorder::bmi2::HardwareSupportToken::new() {
         println!();
 
         println!("BMI2 implementation:");
         for coord in list {
-            let idx = unsafe { zorder::bmi2::index_of_unchecked(coord) };
-            let new_coord: [u8; 3] = unsafe { zorder::bmi2::coord_of_unchecked(idx) };
+            let idx = zorder::bmi2::index_of(coord, support_token);
+            let new_coord: [u8; 3] = zorder::bmi2::coord_of(idx, support_token);
 
             println!("{:?} => {:032b} => {:?}", coord, idx, new_coord);
         }
