@@ -40,6 +40,7 @@ pub(crate) const fn interleave_shift(dim: u32, i: u32) -> u32 {
 /// # Panics
 ///
 /// Panic behavior is the same as [`bit_mask`] for the `bits` parameter.
+#[inline]
 pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits: u32) -> T {
     let mut acc = <T as num_traits::Zero>::zero();
     let mask = bit_mask::<T>(bits);
