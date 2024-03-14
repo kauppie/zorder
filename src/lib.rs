@@ -15,7 +15,7 @@
 //! Basic usage with software implementation:
 //!
 //! ```
-//! use zorder::{index_of, coord_of};
+//! use zorder::{coord_of, index_of};
 //!
 //! let idx = index_of([1u16, 1u16]);
 //! assert_eq!(idx, 3u32);
@@ -27,13 +27,13 @@
 //! Basic usage with bmi2 implementation:
 //!
 //! ```
-//! use zorder::bmi2::{coord_of, index_of};
+//! use zorder::bmi2::{coord_of_unchecked, index_of_unchecked};
 //!
 //! if zorder::bmi2::has_hardware_support() {
-//!     let idx = unsafe { index_of([1u16, 1u16]) };
+//!     let idx = unsafe { index_of_unchecked([1u16, 1u16]) };
 //!     assert_eq!(idx, 3u32);
 //!
-//!     let coord = unsafe { coord_of(idx) };
+//!     let coord = unsafe { coord_of_unchecked(idx) };
 //!     assert_eq!(coord, [1u16, 1u16]);
 //! }
 //! ```
@@ -97,8 +97,11 @@ pub mod bmi2 {
 
     /// Returns true if the CPU supports the bmi2 instruction set.
     ///
-    /// You can use this function to validate that [`zorder::bmi2::index_of`] and
-    /// [`zorder::bmi2::coord_of`] can be safely called.
+    /// You can use this function to validate that [`index_of_unchecked`] and
+    /// [`coord_of_unchecked`] can be safely called.
+    /// Optionally, you can acquire a [`HardwareSupportToken`] to ensure that
+    /// the CPU supports the bmi2 instruction set at runtime, and then call
+    /// [`index_of`] and [`coord_of`] without unsafe.
     pub fn has_hardware_support() -> bool {
         #[cfg(all(target_arch = "x86_64", feature = "std"))]
         {
@@ -108,6 +111,40 @@ pub mod bmi2 {
         {
             false
         }
+    }
+
+    /// A token that guarantees that the CPU supports the bmi2 instruction set.
+    ///
+    /// You can freely copy and move this token, but you cannot create an instance
+    /// directly. Instead, [`HardwareSupportToken::new`] returns an instance if the
+    /// CPU supports the bmi2 instruction set.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct HardwareSupportToken {
+        _private: (),
+    }
+
+    impl HardwareSupportToken {
+        /// Returns a new instance if the CPU supports the bmi2 instruction set.
+        pub fn new() -> Option<Self> {
+            has_hardware_support().then(|| Self { _private: () })
+        }
+    }
+
+    /// Safe wrapper around [`index_of_unchecked`] that requires a
+    /// [`HardwareSupportToken`] to guarantee that the bmi2 instruction set is
+    /// supported by the CPU.
+    #[inline]
+    pub fn index_of<I, const N: usize>(
+        array: [I; N],
+        _support_token: HardwareSupportToken,
+    ) -> <I as Interleave<N>>::Output
+    where
+        I: InterleaveBMI2<N>,
+    {
+        // SAFETY: Having an instance of `HardwareSupportToken` guarantees that
+        // the `bmi2` instruction set is supported by the CPU and that it is safe
+        // to call `index_of_unchecked`.
+        unsafe { index_of_unchecked(array) }
     }
 
     /// Calculates Z-order curve index for given sequence of coordinates.
@@ -124,34 +161,45 @@ pub mod bmi2 {
     /// supported by the CPU. This can be checked at runtime:
     ///
     /// ```
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         // ...
-    ///     }
+    /// if zorder::bmi2::has_hardware_support() {
+    ///    // ...
     /// }
     /// ```
     ///
     /// # Examples
     ///
     /// ```
-    /// # use zorder::bmi2::index_of;
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         let idx = index_of([3u32, 7u32]);
-    ///         assert_eq!(idx, 0b101_111u64);
-    ///     }
+    /// if zorder::bmi2::has_hardware_support() {
+    ///     let idx = unsafe { index_of_unchecked([3u32, 7u32]) };
+    ///     assert_eq!(idx, 0b101_111u64);
     /// }
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
-    #[cfg(target_arch = "x86_64")]
-    pub unsafe fn index_of<I, const N: usize>(array: [I; N]) -> <I as Interleave<N>>::Output
+    pub unsafe fn index_of_unchecked<I, const N: usize>(
+        array: [I; N],
+    ) -> <I as Interleave<N>>::Output
     where
         I: InterleaveBMI2<N>,
     {
         util::generic_index_of(array, |idx| idx.interleave_bmi2())
+    }
+
+    /// Safe wrapper around [`coord_of_unchecked`] that requires a
+    /// [`HardwareSupportToken`] to guarantee that the bmi2 instruction set is
+    /// supported by the CPU.
+    #[inline]
+    pub fn coord_of<I, const N: usize>(
+        index: I,
+        _support_token: HardwareSupportToken,
+    ) -> [<I as Deinterleave<N>>::Output; N]
+    where
+        I: DeinterleaveBMI2<N> + Copy,
+    {
+        // SAFETY: Having an instance of `HardwareSupportToken` guarantees that
+        // the `bmi2` instruction set is supported by the CPU and that it is safe
+        // to call `coord_of_unchecked`.
+        unsafe { coord_of_unchecked(index) }
     }
 
     /// Returns the 2D coordinates of the given Z-order curve index.
@@ -168,30 +216,26 @@ pub mod bmi2 {
     /// supported by the CPU. This can be checked at runtime:
     ///
     /// ```
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         // ...
-    ///     }
+    /// # use zorder::bmi2;
+    /// if bmi2::has_hardware_support() {
+    ///    // ...
     /// }
     /// ```
     ///
     /// # Examples
     ///
     /// ```
-    /// # use zorder::bmi2::coord_of;
-    /// #[cfg(target_arch = "x86_64")]
-    /// {
-    ///     if is_x86_feature_detected!("bmi2") {
-    ///         let coord = coord_of(0b101_111u64);
-    ///         assert_eq!(coord, [3u32, 7u32]);
-    ///     }
+    /// # use zorder::bmi2;
+    /// if bmi2::has_hardware_support() {
+    ///     let coord = unsafe { coord_of_unchecked(0b101_111u64) };
+    ///     assert_eq!(coord, [3u32, 7u32]);
     /// }
     /// ```
     #[inline]
     #[target_feature(enable = "bmi2")]
-    #[cfg(target_arch = "x86_64")]
-    pub unsafe fn coord_of<I, const N: usize>(index: I) -> [<I as Deinterleave<N>>::Output; N]
+    pub unsafe fn coord_of_unchecked<I, const N: usize>(
+        index: I,
+    ) -> [<I as Deinterleave<N>>::Output; N]
     where
         I: DeinterleaveBMI2<N> + Copy,
     {
