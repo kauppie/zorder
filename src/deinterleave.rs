@@ -107,9 +107,7 @@ macro_rules! impl_deinterleave_bmi2_32 {
                     #[cfg(target_arch = "x86_64")]
                     {
                         let mask = interleave_mask::<u32>($dim, 1) << lsb;
-                        unsafe {
-                            core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
-                        }
+                        core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
                     }
                     #[cfg(not(target_arch = "x86_64"))]
                     {
@@ -131,9 +129,7 @@ macro_rules! impl_deinterleave_bmi2_64 {
                     #[cfg(target_arch = "x86_64")]
                     {
                         let mask = interleave_mask::<u64>($dim, 1) << lsb;
-                        unsafe {
-                            core::arch::x86_64::_pext_u64(self.as_(), mask).as_()
-                        }
+                        core::arch::x86_64::_pext_u64(self.as_(), mask).as_()
                     }
                     #[cfg(not(target_arch = "x86_64"))]
                     {
