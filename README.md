@@ -23,17 +23,14 @@ assert_eq!(coord, [1u16, 1u16]);
 This should be faster but requires x86 specific instruction set support.
 
 ```rust
-#[cfg(target_arch = "x86_64")]
-{
-    use zorder::bmi2::{index_of, coord_of};
+use zorder::bmi2::{coord_of, index_of};
 
-    if is_x86_feature_detected!("bmi2") {
-        let idx = unsafe { index_of([1u16, 1u16]) };
-        assert_eq!(idx, 3u32);
+if zorder::bmi2::has_hardware_support() {
+    let idx = unsafe { index_of([1u16, 1u16]) };
+    assert_eq!(idx, 3u32);
 
-        let coord = unsafe { coord_of(idx) };
-        assert_eq!(coord, [1u16, 1u16]);
-    }
+    let coord = unsafe { coord_of(idx) };
+    assert_eq!(coord, [1u16, 1u16]);
 }
 ```
 
