@@ -82,9 +82,9 @@ where
     util::generic_index_of(array, Interleave::interleave)
 }
 
-/// Returns the 2D coordinates of the given Z-order curve index.
+/// Returns the N-dimensional coordinates of the given Z-order curve index.
 ///
-/// Since many different 2D coordinates can be mapped to the same type `I`,
+/// Since many coordinate type and dimension combinations can be mapped to the same type `I`,
 /// you may need to specify the number of dimensions `N` to disambiguate.
 ///
 /// # Examples
@@ -261,9 +261,9 @@ pub mod bmi2 {
         }
     }
 
-    /// Returns the 2D coordinates of the given Z-order curve index.
+    /// Returns the N-dimensional coordinates of the given Z-order curve index.
     ///
-    /// Since many different 2D coordinates can be mapped to the same type `I`,
+    /// Since many coordinate type and dimension combinations can be mapped to the same type `I`,
     /// you may need to specify the number of dimensions `N` to disambiguate.
     ///
     /// This function requires the bmi2 instruction set, but it can be
