@@ -1,5 +1,10 @@
 # `zorder` / curve index conversions
 
+[![CI status](https://github.com/kauppie/zorder/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/kauppie/zorder/actions/workflows/rust.yml)
+[![Crate](https://img.shields.io/crates/d/zorder?label=crates.io)](https://crates.io/crates/zorder)
+[![Docs](https://img.shields.io/docsrs/zorder?label=docs.rs)](https://docs.rs/zorder/latest/zorder/)
+![License](https://img.shields.io/crates/l/zorder)
+
 This crate provides functions to convert N-dimensional[^1] coordinates to [Z-order curve](https://en.wikipedia.org/wiki/Z-order_curve) indexes and back. Z-order curve, also known as Morton code, is a mapping of N-dimensional coordinates to 1D index which preverses locality. It is cache-efficient way of storing N-dimensional data in 1D array.
 
 [^1]: Maximum number of dimensions is limited by the largest unsigned integer type, `u128`, which is able to store 16 8-bit coordinates. `bmi2` based approach is limited to `u64`.
