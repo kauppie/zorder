@@ -44,7 +44,7 @@ fn bench_bmi2(c: &mut Criterion) {
             b.iter(|| bmi2::coord_of::<_, 3>(black_box(2318112u32), support_token))
         });
     } else {
-        panic!("failed to benchmark: bmi2 feature is not detected");
+        panic!("Couldn't run BMI2 benchmarks on this hardware. Try the software based benchmarks.");
     }
 }
 

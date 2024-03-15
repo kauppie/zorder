@@ -54,36 +54,38 @@ $ cargo run --example bmi2_support
 
 ## Benchmarks
 
-Benchmarked with [criterion](https://github.com/bheisler/criterion.rs) using AMD Ryzen 9 7950X on WSL2. Standard `release` profile was used. All results are rounded up to three significant figures.
+Below are benchmark results using two different systems; PC with AMD Ryzen 9 7950X in Ubuntu WSL2 and Raspberry Pi 5 on Raspberry Pi OS. Standard `release` profile was used. All results are rounded up to three significant figures.
 
 You can run `cargo bench` to see the results on your machine.
 
-| Function       | Dimension | Index width (bits) | Time (ns) |
-| -------------- | --------- | ------------------ | --------- |
-| index_of       | 2         | 16  (2 x 8)        | 2.00      |
-|                |           | 32  (2 x 16)       | 1.50      |
-|                |           | 64  (2 x 32)       | 1.32      |
-|                |           | 128 (2 x 64)       | 6.34      |
-|                | 3         | 32  (3 x 8)        | 1.77      |
-|                |           | 64  (3 x 16)       | 2.23      |
-|                |           | 128 (3 x 32)       | 6.42      |
-| coord_of       | 2         | 16  (2 x 8)        | 1.59      |
-|                |           | 32  (2 x 16)       | 1.54      |
-|                |           | 64  (2 x 32)       | 1.86      |
-|                |           | 128 (2 x 64)       | 3.90      |
-|                | 3         | 32  (3 x 8)        | 1.93      |
-|                |           | 64  (3 x 16)       | 2.36      |
-|                |           | 128 (3 x 32)       | 6.11      |
-| bmi2::index_of | 2         | 16  (2 x 8)        | 1.03      |
-|                |           | 32  (2 x 16)       | 0.935     |
-|                |           | 64  (2 x 32)       | 0.994     |
-|                | 3         | 32  (3 x 8)        | 1.07      |
-|                |           | 64  (3 x 16)       | 5.17      |
-| bmi2::coord_of | 2         | 16  (2 x 8)        | 0.947     |
-|                |           | 32  (2 x 16)       | 0.938     |
-|                |           | 64  (2 x 32)       | 1.13      |
-|                | 3         | 32  (3 x 8)        | 1.14      |
-|                |           | 64  (3 x 16)       | 1.14      |
+Raspberry Pi 5 has non-`x86_64` architecture and doesn't support BMI2, thus there are no results for those benchmarks.
+
+| Function       | Dimension | Index width (bits) | 7950X (ns) | Raspberry Pi 5 (ns) |
+| -------------- | --------- | ------------------ | ---------- | ------------------- |
+| index_of       | 2         | 16  (2 x 8)        | 2.00       | 4.60                |
+|                |           | 32  (2 x 16)       | 1.50       | 5.90                |
+|                |           | 64  (2 x 32)       | 1.32       | 7.28                |
+|                |           | 128 (2 x 64)       | 6.34       | 7.28                |
+|                | 3         | 32  (3 x 8)        | 1.77       | 4.12                |
+|                |           | 64  (3 x 16)       | 2.23       | 5.37                |
+|                |           | 128 (3 x 32)       | 6.42       | 21.0                |
+| coord_of       | 2         | 16  (2 x 8)        | 1.59       | 3.04                |
+|                |           | 32  (2 x 16)       | 1.54       | 3.79                |
+|                |           | 64  (2 x 32)       | 1.86       | 4.54                |
+|                |           | 128 (2 x 64)       | 3.90       | 9.29                |
+|                | 3         | 32  (3 x 8)        | 1.93       | 3.79                |
+|                |           | 64  (3 x 16)       | 2.36       | 5.72                |
+|                |           | 128 (3 x 32)       | 6.11       | 12.2                |
+| bmi2::index_of | 2         | 16  (2 x 8)        | 1.03       | -                   |
+|                |           | 32  (2 x 16)       | 0.935      | -                   |
+|                |           | 64  (2 x 32)       | 0.994      | -                   |
+|                | 3         | 32  (3 x 8)        | 1.07       | -                   |
+|                |           | 64  (3 x 16)       | 5.17       | -                   |
+| bmi2::coord_of | 2         | 16  (2 x 8)        | 0.947      | -                   |
+|                |           | 32  (2 x 16)       | 0.938      | -                   |
+|                |           | 64  (2 x 32)       | 1.13       | -                   |
+|                | 3         | 32  (3 x 8)        | 1.14       | -                   |
+|                |           | 64  (3 x 16)       | 1.14       | -                   |
 
 ## License
 
