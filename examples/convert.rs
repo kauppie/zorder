@@ -1,3 +1,8 @@
+//! Example to show conversions from 3D coordinates to Z-order index and back.
+//!
+//! The example uses both software and BMI2 hardware implementations, but the BMI2
+//! implementation only runs if the hardware supports it.
+
 fn main() {
     let list = [
         [0u8, 0u8, 0u8],
