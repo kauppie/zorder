@@ -21,3 +21,6 @@ jobs:
 
     - name: Test
       run: cargo test --verbose
+
+    - name: Clippy
+      run: cargo clippy --verbose
