@@ -167,7 +167,7 @@ pub mod bmi2 {
     impl HardwareSupportToken {
         /// Returns a new instance if the CPU supports the bmi2 instruction set.
         pub fn new() -> Option<Self> {
-            has_hardware_support().then(|| Self { _private: () })
+            has_hardware_support().then_some(Self { _private: () })
         }
     }
 
