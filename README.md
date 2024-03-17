@@ -57,6 +57,23 @@ You can validate that your CPU supports `bmi2` with the provided example:
 $ cargo run --example bmi2_support
 ```
 
+## Optimization
+
+`zorder` can be around 500 times slower in `dev` mode compared to `release` mode. It is therefore strongly recommended that you enable package level optimizations for `zorder`.
+Due to limitations of the Rust compiler described [here](https://doc.rust-lang.org/cargo/reference/profiles.html#overrides-and-generics), you need to increase the `dev` mode optimization level for your package as well.
+
+Add the following to your `Cargo.toml` manifest file:
+
+```toml
+# Small amount of optimization for your package in `dev` mode.
+[profile.dev]
+opt-level = 1
+
+# Compile `zorder` with high optimization.
+[profile.dev.package.zorder]
+opt-level = 3
+```
+
 ## Benchmarks
 
 Below are benchmark results using two different systems; PC with AMD Ryzen 9 7950X in Ubuntu WSL2 and Raspberry Pi 5 on Raspberry Pi OS. Standard `release` profile was used. All results are rounded up to three significant figures.
