@@ -33,7 +33,7 @@ use zorder::bmi2::{coord_of, coord_of_unchecked, HardwareSupportToken, index_of,
 // Safe interface with hardware support token.
 let support_token = HardwareSupportToken::new();
 if let Some(support_token) = support_token {
-  let idx = index_of([1u16, 1u16], support_token);
+    let idx = index_of([1u16, 1u16], support_token);
     assert_eq!(idx, 3u32);
 
     let coord = coord_of(idx, support_token);
