@@ -5,7 +5,7 @@
 [![Docs](https://img.shields.io/docsrs/zorder?label=docs.rs)](https://docs.rs/zorder/latest/zorder/)
 ![License](https://img.shields.io/crates/l/zorder)
 
-This crate provides functions to convert N-dimensional[^1] coordinates to [Z-order curve](https://en.wikipedia.org/wiki/Z-order_curve) indexes and back. Z-order curve, also known as Morton code, is a mapping of N-dimensional coordinates to 1D index which preverses locality. It is cache-efficient way of storing N-dimensional data in 1D array.
+This crate provides functions to convert N-dimensional[^1] coordinates to [Z-order curve](https://en.wikipedia.org/wiki/Z-order_curve) indexes and back. Z-order curve, also known as Morton code, is a mapping of N-dimensional coordinates to 1D index which preserves locality. It is cache-efficient way of storing N-dimensional data in 1D array.
 
 [^1]: Maximum number of dimensions is limited by the largest unsigned integer type, `u128`, which is able to store 16 8-bit coordinates. `bmi2` based approach is limited to `u64`.
 
@@ -16,11 +16,19 @@ This crate provides functions to convert N-dimensional[^1] coordinates to [Z-ord
 ```rust
 use zorder::{index_of, coord_of};
 
+// 2D coordinates
 let idx = index_of([1u16, 1u16]);
 assert_eq!(idx, 3u32);
 
 let coord = coord_of(idx);
 assert_eq!(coord, [1u16, 1u16]);
+
+// 3D coordinates
+let idx = index_of([1u16, 1u16, 1u16]);
+assert_eq!(idx, 7u64);
+
+let coord = coord_of(idx);
+assert_eq!(coord, [1u16, 1u16, 1u16]);
 ```
 
 ### [`bmi2`](https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set) implementation
