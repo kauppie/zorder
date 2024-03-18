@@ -65,6 +65,17 @@ You can validate that your CPU supports `bmi2` with the provided example:
 $ cargo run --example bmi2_support
 ```
 
+### `no_std`
+
+`zorder` supports `no_std` targets but `std` feature is enabled by default so you need to disable it:
+
+```toml
+[dependencies]
+zorder = { version = "<latest>", default-features = false }
+```
+
+`std` library is needed for checking BMI2 support.
+
 ## Optimization
 
 `zorder` can be around 500 times slower in `dev` mode compared to `release` mode. It is therefore strongly recommended that you enable package level optimizations for `zorder`.
