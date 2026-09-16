@@ -1,6 +1,6 @@
-use num_traits::{cast::AsPrimitive, PrimInt};
+use num_traits::{PrimInt, cast::AsPrimitive};
 
-use crate::mask::{interleave_mask, interleave_shift, BitCount};
+use crate::mask::{BitCount, interleave_mask, interleave_shift};
 
 /// Deinterleave a single number from a set of interleaved numbers. Inverse of
 /// [`Interleave`](crate::interleave::Interleave).
@@ -105,7 +105,7 @@ macro_rules! impl_deinterleave_bmi2_32 {
                 #[inline]
                 unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
                     #[cfg(target_arch = "x86_64")]
-                    {
+                    unsafe {
                         let mask = interleave_mask::<u32>($dim, 1) << lsb;
                         core::arch::x86_64::_pext_u32(self.as_(), mask).as_()
                     }
@@ -127,7 +127,7 @@ macro_rules! impl_deinterleave_bmi2_64 {
                 #[inline]
                 unsafe fn deinterleave_bmi2(self, lsb: usize) -> <Self as Deinterleave<$dim>>::Output {
                     #[cfg(target_arch = "x86_64")]
-                    {
+                    unsafe {
                         let mask = interleave_mask::<u64>($dim, 1) << lsb;
                         core::arch::x86_64::_pext_u64(self.as_(), mask).as_()
                     }

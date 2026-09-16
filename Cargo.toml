@@ -1,14 +1,12 @@
 [package]
 name = "zorder"
 version = "0.2.2"
-edition = "2021"
+edition = "2024"
 license = "MIT OR Apache-2.0"
 authors = ["Elias Kauppi"]
 description = "Fast Z-order curve conversions"
-homepage = "https://github.com/kauppie/zorder"
 repository = "https://github.com/kauppie/zorder"
 documentation = "https://docs.rs/zorder"
-readme = "README.md"
 keywords = ["z-order", "bmi2", "morton"]
 categories = ["algorithms", "hardware-support", "no-std::no-alloc"]
 

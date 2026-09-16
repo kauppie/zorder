@@ -233,7 +233,7 @@ pub mod bmi2 {
     where
         I: InterleaveBMI2<N>,
     {
-        crate::util::generic_index_of(array, |idx| idx.interleave_bmi2())
+        crate::util::generic_index_of(array, |idx| unsafe { idx.interleave_bmi2() })
     }
 
     /// Safe wrapper around [`coord_of_unchecked`] that requires a
@@ -300,7 +300,7 @@ pub mod bmi2 {
     where
         I: DeinterleaveBMI2<N> + Copy,
     {
-        crate::util::generic_coord_of(index, |idx, i| idx.deinterleave_bmi2(i))
+        crate::util::generic_coord_of(index, |idx, i| unsafe { idx.deinterleave_bmi2(i) })
     }
 }
 

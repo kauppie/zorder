@@ -1,6 +1,6 @@
-use num_traits::{cast::AsPrimitive, PrimInt};
+use num_traits::{PrimInt, cast::AsPrimitive};
 
-use crate::mask::{interleave_mask, interleave_shift, BitCount};
+use crate::mask::{BitCount, interleave_mask, interleave_shift};
 
 /// Interleaves the bits of the given number, while taking output dimension
 /// into account.
@@ -107,7 +107,7 @@ macro_rules! impl_interleave_bmi2_32 {
                 #[inline]
                 unsafe fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
                     #[cfg(target_arch = "x86_64")]
-                    {
+                    unsafe {
                         core::arch::x86_64::_pdep_u32(self.as_(), interleave_mask($dim, 1)).as_()
                     }
                     #[cfg(not(target_arch = "x86_64"))]
@@ -125,7 +125,7 @@ macro_rules! impl_interleave_bmi2_64 {
                 #[inline]
                 unsafe fn interleave_bmi2(self) -> <Self as Interleave<$dim>>::Output {
                     #[cfg(target_arch = "x86_64")]
-                    {
+                    unsafe {
                         core::arch::x86_64::_pdep_u64(self.as_(), interleave_mask($dim, 1)).as_()
                     }
                     #[cfg(not(target_arch = "x86_64"))]
