@@ -51,6 +51,8 @@
 //! ```
 
 #![no_std]
+#![cfg_attr(feature = "nightly", feature(const_trait_impl))]
+#![cfg_attr(feature = "nightly", feature(const_destruct))]
 
 #[cfg(feature = "std")]
 extern crate std;

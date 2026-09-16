@@ -55,6 +55,61 @@ pub(crate) fn interleave_mask<T: num_traits::PrimInt + BitCount>(dim: u32, bits:
     acc
 }
 
+pub mod nightly {
+    use std::marker::Destruct;
+
+    const trait Interleaver {
+        const ZERO: Self;
+        const MAX: Self;
+        const BITS: u32;
+
+        fn unsigned_shr(self, n: u32) -> Self;
+        fn unsigned_shl(self, n: u32) -> Self;
+        fn bitor(self, rhs: Self) -> Self;
+    }
+
+    const fn interleave_mask<T: [const] Interleaver + [const] Destruct + Copy>(
+        dim: u32,
+        bits: u32,
+    ) -> T {
+        let mut acc = T::ZERO;
+        let mask = bit_mask::<T>(bits);
+
+        let ceil_div_dim = T::BITS.div_ceil(dim);
+        let ceil_div_bits = ceil_div_dim.div_ceil(bits);
+
+        let mut i = 0;
+        while i < ceil_div_bits {
+            acc = acc.bitor(mask.unsigned_shl(i * dim * bits));
+            i += 1;
+        }
+
+        acc
+    }
+
+    const fn bit_mask<T: [const] Interleaver>(bits: u32) -> T {
+        T::MAX.unsigned_shr(T::BITS - bits)
+    }
+
+    const impl Interleaver for u32 {
+        const ZERO: Self = 0;
+        const MAX: Self = u32::MAX;
+        const BITS: u32 = u32::BITS;
+
+        fn unsigned_shr(self, n: u32) -> Self {
+            self >> n
+        }
+
+        fn unsigned_shl(self, n: u32) -> Self {
+            self << n
+        }
+
+        fn bitor(self, rhs: Self) -> Self {
+            self | rhs
+        }
+    }
+}
+
 /// Set the `n` least significant bits of given type.
 ///
 /// # Panics
